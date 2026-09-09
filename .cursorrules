@@ -1,8 +1,13 @@
 # Cursor Rules for baifa-api
-You are working on baifa-api (Laravel RESTful API in Docker Compose).
 
-Key rules:
-1. Run all commands via Docker Compose: `docker compose exec app ...`. Never run php or composer on the host.
-2. Place API routes in `routes/api.php` under `/v1/`.
-3. Use Form Requests for validation and API Resources for JSON responses.
-4. Keep `docs/openapi.yaml` and `README.md` updated when adding or updating endpoints.
+Operational Rules:
+- NEVER run tests or `./vendor/bin/pint` automatically. Only run them when the user explicitly requests it.
+- NEVER run php or composer on the host. Always use `docker compose exec app ...`.
+- Save all business rules requested by the client in `docs/business_rules.md`.
+- Keep `docs/openapi.yaml` and `README.md` updated when modifying endpoints.
+
+Code Architecture:
+- Laravel RESTful API with `/api/v1/` prefix.
+- User roles: client, employee, manager, admin (`App\Enums\UserRole`).
+- Form Requests in `app/Http/Requests/`.
+- API Resources in `app/Http/Resources/`.

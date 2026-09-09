@@ -1,45 +1,51 @@
-# Directrices para Agentes de IA y Modelos de Lenguaje
+# 🤖 Directrices Operativas y de Negocio para Agentes de IA
 
-Este repositorio contiene la API RESTful **baifa-api**. Cualquier modelo de lenguaje o asistente (Antigravity, Claude, Cursor, ChatGPT) que trabaje aquí debe seguir estas reglas esenciales:
-
----
-
-## ⚠️ Regla de Oro (Docker Obligatorio)
-
-* **NUNCA ejecutes `php`, `composer` ni `mysql` directamente en el host.**
-* **TODOS los comandos deben ejecutarse dentro de Docker:**
-  ```bash
-  docker compose exec app php artisan <comando>
-  docker compose exec app composer <comando>
-  docker compose exec app php artisan test
-  docker compose exec app ./vendor/bin/pint
-  ```
+Este repositorio contiene la API RESTful **baifa-api** para un mini-SaaS. Cualquier agente de IA (Google Antigravity, Claude, Cursor, LLMs) que trabaje en este proyecto DEBE cumplir estrictamente con las siguientes directrices técnicas, operativas y de negocio.
 
 ---
 
-## 🏗️ Pila Tecnológica
+## 🚫 1. Reglas Operativas Estrictas (Lo que NO debes hacer automáticamente)
 
-* **PHP 8.4-FPM** (`baifa_api_app`): Laravel, Composer y extensiones (`pdo_mysql`, etc.).
-* **Nginx** (`baifa_api_webserver`): Puerto 8000 en el host -> FastCGI `app:9000`.
-* **MySQL 8.0** (`baifa_api_db`): Puerto 3306, base de datos `baifa_api`.
+1. **NO ejecutar tests de forma automática:**
+   * ❌ **PROHIBIDO** ejecutar `php artisan test` tras cada modificación de código.
+   * ✅ **SOLO** ejecuta las pruebas cuando el usuario (Juan) te lo indique expresamente de forma manual (ej. *"corre los tests"*, *"haz las pruebas"*).
+2. **NO ejecutar Laravel Pint de forma automática:**
+   * ❌ **PROHIBIDO** ejecutar `./vendor/bin/pint` automáticamente al guardar o editar código.
+   * ✅ **SOLO** ejecuta Pint cuando el usuario te lo solicite expresamente (ej. *"pasa pint"*, *"formatea el código"*).
+3. **Regla de Oro de Docker:**
+   * ❌ **NUNCA** ejecutes `php`, `composer` ni comandos de base de datos directamente en el host.
+   * ✅ **SIEMPRE** ejecuta dentro del contenedor Docker: `docker compose exec app <comando>`.
 
 ---
 
-## 📐 Convenciones de Código
+## 📋 2. Gestión Obligatoria de Reglas de Negocio
 
-1. **Rutas:** Registrar en `routes/api.php` con prefijo `/v1/` (`/api/v1/...`).
+El proyecto cuenta con un documento centralizado para las peticiones del cliente:
+📄 **[`docs/business_rules.md`](docs/business_rules.md)**
+
+### Tus responsabilidades respecto al negocio:
+1. **Captura inmediata de requerimientos:**
+   Cada vez que el usuario mencione una condición, flujo o requerimiento solicitado por el cliente (ej. *"el cliente pide que los empleados no puedan ver reportes de ventas"*), **debes registrarlo de inmediato** en `docs/business_rules.md` asignándole un código (ej. `RN-VENTAS-02`) y su estado (🔴 Planificado).
+2. **Consulta previa antes de programar:**
+   Antes de codificar un módulo o endpoint, consulta `docs/business_rules.md` para asegurarte de respetar todas las reglas y restricciones del cliente.
+3. **Actualización de estado:**
+   Cuando termines de implementar una regla de negocio, actualiza su estado a 🟢 [Completado] en `docs/business_rules.md`.
+
+---
+
+## 🏗️ 3. Estándares de Programación de la API
+
+1. **Rutas:** Registrar en `routes/api.php` bajo el prefijo `/api/v1/`.
 2. **Controladores:** Ubicar en `app/Http/Controllers/Api/V1/`.
-3. **Validación y Transformación:**
-   * Usar **Form Requests** (`app/Http/Requests/...`) para validación.
-   * Usar **API Resources** (`app/Http/Resources/...`) para serializar respuestas a JSON.
-4. **Respuestas JSON:** Siempre responder en JSON con códigos de estado HTTP correctos.
+3. **Validación:** Usar siempre **Form Requests** (`app/Http/Requests/...`). No validar directamente en controladores.
+4. **Respuestas:** Usar siempre **API Resources** (`app/Http/Resources/...`) para garantizar respuestas JSON predecibles.
+5. **Roles de Usuario:** Usar el enum `App\Enums\UserRole` (`client`, `employee`, `manager`, `admin`).
+6. **Protección de Rutas:** Usar `auth:sanctum` para autenticación y `role:nombre_rol` para permisos.
 
 ---
 
-## 📝 Documentación del Proyecto (Únicos Archivos Activos)
+## 📖 4. Documentación Activa del Proyecto
 
-Este proyecto mantiene una documentación ágil y centralizada:
-1. **[`docs/openapi.yaml`](docs/openapi.yaml):** Cada vez que crees, modifiques o elimines un endpoint, actualiza esta especificación OpenAPI con sus métodos, parámetros y esquemas de respuesta.
-2. **[`README.md`](README.md):** Si se añade un cambio importante en la instalación o comandos de uso, actualiza el README.
-
-*(No se requiere mantener changelogs, ADRs ni guías de contribución complejas).*
+Solo se mantienen dos archivos de documentación técnica:
+1. **[`docs/openapi.yaml`](docs/openapi.yaml):** Actualizar cada vez que se cree, modifique o elimine un endpoint.
+2. **[`README.md`](README.md):** Actualizar si hay cambios en la instalación o comandos de ejecución del proyecto.
