@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Documentos comerciales y presupuestos confidenciales
+docs/business/*.pdf
+docs/business/*.png
+docs/business/*.docx
+docs/business/*.xlsx

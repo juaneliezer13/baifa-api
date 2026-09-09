@@ -1,114 +1,95 @@
-# 📋 Libro de Reglas de Negocio y Módulos - baifa-api
+# 📋 Libro de Reglas de Negocio, Alcance y Hoja de Ruta - baifa-api
 
-Este documento es la **fuente única de verdad** de todos los requerimientos y reglas funcionales solicitadas por el cliente para la plataforma de gestión y tracking de generadores eléctricos. Cada regla posee un código identificador único y un estado de avance.
-
----
-
-## 🚦 Estados de Implementación
-* 🔴 **[Planificado]**: Requerimiento definido por el cliente, pendiente de desarrollo.
-* 🟡 **[En Progreso]**: En desarrollo activo en la rama correspondiente.
-* 🟢 **[Completado]**: Desarrollado, documentado en OpenAPI y probado.
+Este documento es la **fuente única de verdad** de todos los requerimientos, reglas funcionales, hitos y acuerdos comerciales establecidos con el cliente para el desarrollo del **Sistema Web de Tracking Logístico de Generadores Eléctricos**.
 
 ---
 
-## 📦 Módulo 1: Autenticación y Control de Roles (RBAC)
-* **Estado:** 🟢 [Completado]
-* **Descripción:** Control de acceso general a la API mediante Laravel Sanctum con Bearer Tokens.
+## 🧭 Hoja de Ruta Comercial Aceptada (5 Etapas Progresivas)
 
-### Reglas de Negocio:
-* **`RN-AUTH-01` [Jerarquía de Roles]:** El sistema cuenta con 4 roles:
-  * `client`: Cliente final (acceso exclusivo a sus generadores y tracking).
-  * `employee`: Personal operativo (actualización manual de checkpoints y operaciones).
-  * `manager`: Jefe o Gerente (supervisión, reportes y gestión administrativa).
-  * `admin`: Administrador global (control de usuarios internos, configuración del sistema).
-* **`RN-AUTH-02` [Registro por Defecto]:** Todo usuario nuevo recibe el rol `client` salvo asignación administrativa.
-* **`RN-AUTH-03` [Sesiones y Tokens]:** Los Bearer Tokens se emiten en `/login` y se destruyen inmediatamente en base de datos al hacer `/logout`.
-* **`RN-AUTH-04` [Serialización de Rol]:** Las respuestas JSON deben incluir `role` (código) y `role_label` (nombre en español).
+El proyecto se desarrolla y entrega bajo una **Metodología de Entregas Progresivas y Funcionales** dividida en 5 etapas consecutivas (Total acordado: **$1,500.00 USD** | Tiempo estimado: **12 a 16 semanas**):
+
+| Etapa | Módulo / Entregable Principal | Alcance Funcional | Inversión Acordada | Anticipo (60%) | Cierre (40%) | Estado |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: |
+| **1** | **Accesos y Directorio** | Control de Accesos, Roles de Usuario y Directorio Fiscal de Clientes. | $245.00 USD | $147.00 | $98.00 | 🟡 **[En Progreso]** (Auth listo, Clientes pendiente) |
+| **2** | **Catálogo de Inventario** | Catálogo de Inventario, Ficha de Generadores, seriales únicos y cargador de fotos. | $285.00 USD | $171.00 | $114.00 | 🔴 **[Planificado]** |
+| **3** | **Puntos de Control** | Puntos de Control (*checkpoints*), Órdenes de Envío y actualización manual de ruta. | $400.00 USD | $240.00 | $160.00 | 🔴 **[Planificado]** |
+| **4** | **Bitácora Histórica** | Bitácora Histórica inmutable con observers/triggers y registro de trazabilidad. | $245.00 USD | $147.00 | $98.00 | 🔴 **[Planificado]** |
+| **5** | **Dashboard y Reportes** | Portal de Autoconsulta para Clientes y Tablero de Reportes Generales de Supervisión. | $325.00 USD | $195.00 | $130.00 | 🔴 **[Planificado]** |
+| **TOTAL** | **Sistema Integral Operativo** | **Plataforma completa (Backend API + Base de Datos + Frontend)** | **$1,500.00 USD** | **$900.00** | **$600.00** | **10% Avance** |
 
 ---
 
-## 📦 Módulo 2: Gestión de Clientes (Directorio Fiscal)
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Directorio empresarial y fiscal de los clientes atendidos por la empresa.
+## 📜 Protocolo de Aceptación y Reglas Comerciales
+* **Criterio de Avance:** No se inicia una etapa nueva si la anterior no está probada y validada al 100% por el cliente.
+* **Flujo Financiero:** Cada etapa contempla un 60% al inicio y un 40% contra entrega demostrada y aprobada.
+* **Alcance Exclusivo:** El servicio contempla diseño lógico, desarrollo de código fuente (API Laravel, Base de datos y Frontend Vue/Nuxt). No incluye infraestructura de hosting/servidores ni dominios.
 
-### Reglas de Negocio:
-* **`RN-CLI-01` [Operaciones Permitidas]:** Registro, consulta (con paginación y filtros), edición y eliminación lógica de clientes.
-* **`RN-CLI-02` [Ficha de Datos Obligatoria]:** Cada cliente debe contar con:
+---
+
+## 📦 Detalle de Reglas de Negocio por Módulo
+
+### 🔹 ETAPA 1: Control de Accesos y Directorio de Clientes
+
+#### Módulo 1.1: Autenticación y Control de Roles (RBAC) 🟢 [Completado]
+* **`RN-AUTH-01` [Jerarquía de Roles]:**
+  * `client` (Cliente): Visualización exclusiva de sus propios generadores y tracking.
+  * `employee` (Empleado): Operadores logísticos (actualización manual de checkpoints).
+  * `manager` (Jefe / Gerente): Supervisión, métricas y gestión de su equipo.
+  * `admin` (Administrador): Control global de accesos y configuración técnica.
+* **`RN-AUTH-02` [Registro por Defecto]:** Todo usuario público nuevo recibe rol `client`.
+* **`RN-AUTH-03` [Sesiones y Tokens]:** Bearer Tokens con Laravel Sanctum revocables en `/logout`.
+* **`RN-AUTH-04` [Formato de Respuestas]:** Retornar siempre `role` y `role_label` en español.
+
+#### Módulo 1.2: Ficha Fiscal y Directorio de Clientes 🔴 [Planificado - SIGUIENTE PASO]
+* **`RN-CLI-01` [CRUD Completo]:** Registro, consulta paginada, edición y eliminación lógica de clientes institucionales.
+* **`RN-CLI-02` [Campos Obligatorios de la Ficha Fiscal]:**
   * Razón Social (nombre legal según registro fiscal).
   * Nombre Corto / Comercial de la empresa.
-  * Número de RIF (único en el sistema).
+  * Número de RIF (único en el sistema con validación de formato).
   * Teléfono de oficinas.
-  * Persona de Contacto: Nombre completo, Email de contacto, Teléfono de contacto.
-* **`RN-CLI-03` [Vinculación de Usuarios]:** Un registro de cliente fiscal puede asociarse a uno o más usuarios con rol `client` para que puedan autenticarse y consultar sus generadores.
-* **`RN-CLI-04` [Permisos de Gestión]:** Solo usuarios con rol `employee`, `manager` o `admin` pueden gestionar el directorio de clientes. Los usuarios `client` no tienen acceso al directorio fiscal.
+  * Persona de Contacto: Nombre completo, Email de contacto, Teléfono directo.
+* **`RN-CLI-03` [Vinculación de Usuarios]:** Capacidad de asociar una ficha de cliente a cuentas de usuario con rol `client`.
+* **`RN-CLI-04` [Permisos]:** Solo accesible para personal interno (`employee`, `manager`, `admin`).
 
 ---
 
-## 📦 Módulo 3: Registro y Gestión de Generadores
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Inventario y control de salida de generadores eléctricos hacia locaciones del cliente.
+### 🔹 ETAPA 2: Catálogo de Inventario y Ficha de Generadores 🔴 [Planificado]
 
-### Reglas de Negocio:
-* **`RN-GEN-01` [Salida de Warehouse]:** Al registrar la salida inicial de un generador desde el almacén, es obligatorio capturar:
-  * Número de Serial del generador (único y obligatorio).
-  * Cliente asignado (vinculado al Directorio Fiscal).
-  * Fecha estimada de llegada / entrega (ETA).
-  * Fotografía referencial del equipo (almacenamiento de imagen con validación de formato jpg/png).
-  * Notas o especificaciones iniciales del equipo (opcional).
-* **`RN-GEN-02` [Estatus Inicial]:** Todo generador registrado inicia en estatus: `warehouse` (En almacén) o `in_transit` (En tránsito hacia locación).
-* **`RN-GEN-03` [Estatus Disponibles del Generador]:**
+* **`RN-GEN-01` [Registro Inicial de Salida]:** Al despachar o registrar un generador se debe capturar:
+  * Número de Serial de fábrica (único y obligatorio).
+  * Cliente asignado (vinculado a la Ficha Fiscal de la Etapa 1).
+  * Fecha estimada de llegada (ETA).
+  * Fotografía referencial del activo (cargador de imágenes con almacenamiento en storage).
+  * Capacidad y modelo del generador.
+* **`RN-GEN-02` [Estados del Generador]:**
   * `warehouse` (En almacén)
   * `in_transit` (En tránsito)
-  * `checkpoint` (En punto de control intermedio)
+  * `checkpoint` (En punto de control)
   * `delivered` (Entregado en locación)
   * `installed` (Instalado y operativo)
-* **`RN-GEN-04` [Integridad de Datos]:** No se puede registrar un generador sin asociarlo a un cliente existente ni sin un número de serial válido.
 
 ---
 
-## 📦 Módulo 4: Puntos de Control y Tracking Manual (Logística)
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Trazabilidad operativa manual de los generadores a lo largo de su ruta de entrega.
+### 🔹 ETAPA 3: Puntos de Control y Órdenes de Envío 🔴 [Planificado]
 
-### Reglas de Negocio:
-* **`RN-TRK-01` [Edición Estrictamente Manual]:** Los cambios de estatus y avance por puntos de control **NO deben ser automáticos ni por GPS/sensores**. Son registrados manualmente por el personal administrativo/operativo a medida que el equipo avanza.
-* **`RN-TRK-02` [Historial de Trazabilidad]:** Cada cambio de punto de control debe persistir en un historial inmutable con:
-  * Generador ID.
-  * Punto de control / Checkpoint (nombre o descripción de la ubicación/fase).
-  * Estatus asignado (`in_transit`, `checkpoint`, `delivered`, `installed`).
-  * Fecha y hora exacta del registro.
-  * Usuario responsable que realizó el cambio manual.
-  * Observaciones o notas adicionales del traslado.
-* **`RN-TRK-03` [Actualización del Estado Principal]:** Al registrar un nuevo checkpoint en el historial, el estatus principal y el checkpoint actual del generador deben actualizarse en la tabla principal para consultas rápidas.
+* **`RN-TRK-01` [Gestión Estrictamente Manual]:** Los cambios de estatus y avance de ruta **NO son automáticos ni por GPS**. Son editados manualmente por los operadores a medida que el equipo avanza.
+* **`RN-TRK-02` [Puntos de Control Personalizables]:** Los operadores pueden registrar la llegada a puntos de control específicos (nombre de checkpoint, fecha, observaciones).
 
 ---
 
-## 📦 Módulo 5: Panel y Buscador de Tracking para Clientes
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Portal privado de autoconsulta para que los clientes finales sigan su generador en tiempo real.
+### 🔹 ETAPA 4: Bitácora Histórica y Registro de Trazabilidad 🔴 [Planificado]
 
-### Reglas de Negocio:
-* **`RN-PRT-01` [Aislamiento de Clientes (Multi-Tenant básico)]:** Un usuario con rol `client` **ÚNICAMENTE** puede visualizar los generadores que pertenecen a su empresa/ficha de cliente. Bajo ninguna circunstancia puede ver equipos de otros clientes.
-* **`RN-PRT-02` [Buscador de Generadores]:** El cliente puede buscar sus generadores por número de serial, fecha o estatus para saber exactamente en qué punto de control se encuentra su equipo.
-* **`RN-PRT-03` [Reporte de Línea de Tiempo (Timeline)]:** La API debe proveer un endpoint que devuelva el historial completo ordenado cronológicamente con cada punto de control superado, fechas, observaciones y estatus actual.
-
----
-
-## 📦 Módulo 6: Administración de Usuarios y Permisos Internos
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Gestión del personal de la empresa con control de accesos.
-
-### Reglas de Negocio:
-* **`RN-USR-01` [CRUD de Usuarios Internos]:** Los administradores (`admin`) pueden listar, crear, editar, asignar roles y desactivar usuarios del equipo interno (`employee`, `manager`, `admin`).
-* **`RN-USR-02` [Protección de Auto-Eliminación]:** Un administrador no puede eliminarse ni desactivarse a sí mismo.
+* **`RN-BIT-01` [Bitácora Inmutable]:** Cada cambio de estatus o punto de control dispara un registro inmutable en base de datos con:
+  * ID del generador.
+  * Punto de control y estatus asignado.
+  * Fecha y hora exacta.
+  * Usuario responsable que realizó la modificación.
+  * Observaciones de la parada/movimiento.
 
 ---
 
-## 📦 Módulo 7: Reportes y Analítica de Supervisión
-* **Estado:** 🔴 [Planificado]
-* **Descripción:** Reportes consolidados para la toma de decisiones gerenciales.
+### 🔹 ETAPA 5: Portal de Clientes y Tablero de Reportes 🔴 [Planificado]
 
-### Reglas de Negocio:
-* **`RN-REP-01` [Reporte de Generadores en Tránsito]:** Listado consolidado con filtros por estatus actual (`warehouse`, `in_transit`, `checkpoint`, `delivered`, `installed`), rango de fechas estimadas de llegada y cliente asignado.
-* **`RN-REP-02` [Reporte Global de Clientes y Equipos Activos]:** Vista gerencial que consolida el total de clientes registrados, total de generadores despachados, instalados y en ruta.
-* **`RN-REP-03` [Acceso Restringido a Reportes]:** Solo los roles `manager` y `admin` pueden consultar los endpoints de reportes consolidados.
+* **`RN-PRT-01` [Aislamiento Estricto para Clientes]:** El cliente solo puede consultar y rastrear generadores asociados a su empresa.
+* **`RN-PRT-02` [Buscador y Línea de Tiempo]:** Buscador de generador por serial y vista interactiva del historial cronológico completo de puntos de control.
+* **`RN-REP-01` [Reportes de Supervisión]:** Reporte de generadores en tránsito (filtrable por estatus y cliente), directorio de clientes y estado global de generadores (exclusivo para `manager` y `admin`).
