@@ -93,3 +93,9 @@ El proyecto se desarrolla y entrega bajo una **Metodología de Entregas Progresi
 * **`RN-PRT-01` [Aislamiento Estricto para Clientes]:** El cliente solo puede consultar y rastrear generadores asociados a su empresa.
 * **`RN-PRT-02` [Buscador y Línea de Tiempo]:** Buscador de generador por serial y vista interactiva del historial cronológico completo de puntos de control.
 * **`RN-REP-01` [Reportes de Supervisión]:** Reporte de generadores en tránsito (filtrable por estatus y cliente), directorio de clientes y estado global de generadores (exclusivo para `manager` y `admin`).
+---
+
+## 🎨 Prototipo de Interfaz y Referencia Visual (Figma)
+* **URL del Prototipo Interactivo:** [https://layer-ethics-21492417.figma.site](https://layer-ethics-21492417.figma.site)
+* **Especificación detallada de vistas, modales y campos:** [docs/business/diseno_figma.md](business/diseno_figma.md)
+* **Estructura de Vistas:** Panel de Control (Dashboard), Catálogo de Generadores, Directorio de Clientes, Rastrear Generador (Timeline), Usuarios del Sistema y Reportes.
