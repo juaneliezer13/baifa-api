@@ -1,16 +1,15 @@
 # Claude Code Guidelines - baifa-api
 
-This is **baifa-api**, a modern Laravel RESTful API running inside Docker Compose.
+Laravel RESTful API in Docker Compose.
 
-## Build & Run Commands
-- Always run commands via Docker: `docker compose exec app <command>`
-- Run migrations: `docker compose exec app php artisan migrate`
-- Run tests: `docker compose exec app php artisan test`
+## Commands
+- Run via Docker: `docker compose exec app <command>`
+- Migrations: `docker compose exec app php artisan migrate`
+- Tests: `docker compose exec app php artisan test`
 - Code formatting: `docker compose exec app ./vendor/bin/pint`
-- View logs: `docker compose logs -f`
 
-## Code Guidelines
-- RESTful API with version prefix: `/api/v1/...`
-- Controllers belong to `app/Http/Controllers/Api/V1/`
-- Use Form Requests for input validation and API Resources for JSON responses.
-- Always keep `docs/openapi.yaml` and `CHANGELOG.md` updated when modifying endpoints.
+## Guidelines
+- API prefix: `/api/v1/...`
+- Controllers in `app/Http/Controllers/Api/V1/`
+- Use Form Requests and API Resources.
+- Maintain only `docs/openapi.yaml` and `README.md` for project documentation.

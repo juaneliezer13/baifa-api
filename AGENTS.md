@@ -1,60 +1,45 @@
-# Directrices para Agentes de IA y Modelos de Lenguaje (Antigravity, Claude, LLMs)
+# Directrices para Agentes de IA y Modelos de Lenguaje
 
-Este repositorio contiene la API RESTful **baifa-api**. Cualquier modelo de lenguaje o agente autónomo (Google Antigravity, Claude, Cursor, ChatGPT, etc.) que trabaje en este código DEBE adherirse a las siguientes directrices operativas y de arquitectura.
+Este repositorio contiene la API RESTful **baifa-api**. Cualquier modelo de lenguaje o asistente (Antigravity, Claude, Cursor, ChatGPT) que trabaje aquí debe seguir estas reglas esenciales:
 
 ---
 
-## ⚠️ Regla de Oro del Entorno (Docker Obligatorio)
+## ⚠️ Regla de Oro (Docker Obligatorio)
 
-* **NUNCA ejecutes `php`, `composer` ni `mysql` directamente en el shell del host.** El host puede no tener estas herramientas instaladas.
-* **TODOS los comandos de Laravel, Composer y base de datos deben ejecutarse a través de Docker Compose:**
+* **NUNCA ejecutes `php`, `composer` ni `mysql` directamente en el host.**
+* **TODOS los comandos deben ejecutarse dentro de Docker:**
   ```bash
-  # Artisan
   docker compose exec app php artisan <comando>
-
-  # Composer
   docker compose exec app composer <comando>
-
-  # Testing
   docker compose exec app php artisan test
-
-  # Formateo (Pint)
   docker compose exec app ./vendor/bin/pint
   ```
 
 ---
 
-## 🏗️ Pila Tecnológica y Contenedores
+## 🏗️ Pila Tecnológica
 
-| Servicio | Nombre Contenedor | Tecnologías |
-| :--- | :--- | :--- |
-| `app` | `baifa_api_app` | PHP 8.4-FPM, Composer, extensiones: `pdo_mysql`, `gd`, `zip`, `bcmath`, etc. |
-| `webserver` | `baifa_api_webserver` | Nginx Alpine (escucha en `http://localhost:8000`, pasa FastCGI a `app:9000`) |
-| `db` | `baifa_api_db` | MySQL 8.0 (puerto `3306`, BD: `baifa_api`, usuario: `baifa_user`) |
+* **PHP 8.4-FPM** (`baifa_api_app`): Laravel, Composer y extensiones (`pdo_mysql`, etc.).
+* **Nginx** (`baifa_api_webserver`): Puerto 8000 en el host -> FastCGI `app:9000`.
+* **MySQL 8.0** (`baifa_api_db`): Puerto 3306, base de datos `baifa_api`.
 
 ---
 
-## 📐 Convenciones de Código y Arquitectura
+## 📐 Convenciones de Código
 
-1. **Rutas y Versionado:**
-   * Todas las rutas de API se registran en `routes/api.php` con prefijo `/v1/` (generando `/api/v1/...`).
-   * No uses vistas Blade ni rutas HTML para funcionalidades de la API.
-2. **Controladores y Respuestas:**
-   * Ubica los controladores en `app/Http/Controllers/Api/V1/`.
-   * Usa siempre **API Resources** (`php artisan make:resource`) para transformar respuestas de modelos Eloquent a JSON. No devuelvas modelos Eloquent directamente.
-   * Valida entradas mediante **Form Requests** dedicados (`php artisan make:request`) en lugar de validar en el controlador.
-3. **Manejo de Errores:**
-   * Las excepciones deben devolver respuestas JSON coherentes con código de estado HTTP adecuado (400, 401, 403, 404, 422, 500).
-4. **Pruebas Automatizadas:**
-   * Cada nuevo endpoint debe incluir al menos una prueba de integración (Feature Test) en `tests/Feature/`.
-   * Ejecuta siempre `docker compose exec app php artisan test` antes de considerar una tarea completada.
+1. **Rutas:** Registrar en `routes/api.php` con prefijo `/v1/` (`/api/v1/...`).
+2. **Controladores:** Ubicar en `app/Http/Controllers/Api/V1/`.
+3. **Validación y Transformación:**
+   * Usar **Form Requests** (`app/Http/Requests/...`) para validación.
+   * Usar **API Resources** (`app/Http/Resources/...`) para serializar respuestas a JSON.
+4. **Respuestas JSON:** Siempre responder en JSON con códigos de estado HTTP correctos.
 
 ---
 
-## 📝 Reglas de Documentación Continua
+## 📝 Documentación del Proyecto (Únicos Archivos Activos)
 
-Cada vez que realices modificaciones en la API:
-1. **Especificación OpenAPI:** Actualiza inmediatamente [`docs/openapi.yaml`](docs/openapi.yaml) con los nuevos endpoints, esquemas de solicitud/respuesta y códigos de error.
-2. **Changelog:** Registra los cambios en la sección `[Unreleased]` de [`CHANGELOG.md`](CHANGELOG.md).
-3. **Decisiones Significativas:** Si introduces un nuevo paquete de terceros, cambias el motor de base de datos o alteras el flujo de autenticación, redacta un nuevo ADR en [`docs/adr/`](docs/adr/).
-4. **Commits:** Usa la convención de [Conventional Commits](CONTRIBUTING.md) (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`).
+Este proyecto mantiene una documentación ágil y centralizada:
+1. **[`docs/openapi.yaml`](docs/openapi.yaml):** Cada vez que crees, modifiques o elimines un endpoint, actualiza esta especificación OpenAPI con sus métodos, parámetros y esquemas de respuesta.
+2. **[`README.md`](README.md):** Si se añade un cambio importante en la instalación o comandos de uso, actualiza el README.
+
+*(No se requiere mantener changelogs, ADRs ni guías de contribución complejas).*
