@@ -1,13 +1,11 @@
 # Cursor Rules for baifa-api
 
 Operational Rules:
-- NEVER run tests or `./vendor/bin/pint` automatically. Only run them when the user explicitly requests it.
-- NEVER run php or composer on the host. Always use `docker compose exec app ...`.
-- Save all business rules requested by the client in `docs/business_rules.md`.
-- Keep `docs/openapi.yaml` and `README.md` updated when modifying endpoints.
+- NO automatic tests. NO automatic Pint. Run only upon manual request.
+- Run all commands via Docker Compose: `docker compose exec app ...`.
 
-Code Architecture:
-- Laravel RESTful API with `/api/v1/` prefix.
-- User roles: client, employee, manager, admin (`App\Enums\UserRole`).
-- Form Requests in `app/Http/Requests/`.
-- API Resources in `app/Http/Resources/`.
+Clean Code Guidelines:
+- Thin controllers: Form Requests for validation, API Resources for JSON responses. Avoid over-engineering.
+- Private endpoints: require `auth:sanctum` and roles where applicable. Public: only /login, /register, /health.
+- Logging: Categorized in Spanish (`[CLIENTES_INFO]`, `[CLIENTES_ERROR]`) for Docker monitoring.
+- Documentation: Always document in Spanish in `docs/openapi.yaml` and record client rules in `docs/business_rules.md`.

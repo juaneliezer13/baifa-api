@@ -1,51 +1,94 @@
-# 🤖 Directrices Operativas y de Negocio para Agentes de IA
+# 🤖 Directrices Técnicas, de Arquitectura y Negocio para Agentes de IA
 
-Este repositorio contiene la API RESTful **baifa-api** para un mini-SaaS. Cualquier agente de IA (Google Antigravity, Claude, Cursor, LLMs) que trabaje en este proyecto DEBE cumplir estrictamente con las siguientes directrices técnicas, operativas y de negocio.
+Este repositorio contiene la API RESTful **baifa-api** para el sistema logístico de generadores eléctricos (BaiFa). Cualquier modelo de lenguaje o agente autónomo (Antigravity, Claude, Cursor, LLMs) que trabaje en este código DEBE adherirse estrictamente a estas directrices.
 
 ---
 
-## 🚫 1. Reglas Operativas Estrictas (Lo que NO debes hacer automáticamente)
+## 🚫 1. Reglas Operativas Estrictas (Ejecución Manual)
 
-1. **NO ejecutar tests de forma automática:**
-   * ❌ **PROHIBIDO** ejecutar `php artisan test` tras cada modificación de código.
-   * ✅ **SOLO** ejecuta las pruebas cuando el usuario (Juan) te lo indique expresamente de forma manual (ej. *"corre los tests"*, *"haz las pruebas"*).
-2. **NO ejecutar Laravel Pint de forma automática:**
-   * ❌ **PROHIBIDO** ejecutar `./vendor/bin/pint` automáticamente al guardar o editar código.
-   * ✅ **SOLO** ejecuta Pint cuando el usuario te lo solicite expresamente (ej. *"pasa pint"*, *"formatea el código"*).
+1. **NO ejecutar tests automáticamente:**
+   * ❌ **PROHIBIDO** ejecutar `php artisan test` tras cada modificación.
+   * ✅ **SOLO** ejecutar pruebas cuando el usuario (Juan) lo ordene expresamente (ej. *"corre los tests"*).
+2. **NO ejecutar Laravel Pint automáticamente:**
+   * ❌ **PROHIBIDO** ejecutar `./vendor/bin/pint` automáticamente.
+   * ✅ **SOLO** ejecutarlo cuando el usuario lo solicite expresamente (ej. *"pasa pint"*, *"formatea el código"*).
 3. **Regla de Oro de Docker:**
-   * ❌ **NUNCA** ejecutes `php`, `composer` ni comandos de base de datos directamente en el host.
-   * ✅ **SIEMPRE** ejecuta dentro del contenedor Docker: `docker compose exec app <comando>`.
+   * ❌ **NUNCA** ejecutar comandos de PHP, Composer o MySQL en el host.
+   * ✅ **SIEMPRE** dentro del contenedor: `docker compose exec app <comando>`.
 
 ---
 
-## 📋 2. Gestión Obligatoria de Reglas de Negocio
+## 🧼 2. Estándar de Código Limpio y Arquitectura Equilibrada
 
-El proyecto cuenta con un documento centralizado para las peticiones del cliente:
-📄 **[`docs/business_rules.md`](docs/business_rules.md)**
+Buscamos un desarrollo **básico, limpio, legible y escalable**, evitando tanto controladores sobrecargados (*fat controllers*) como el exceso de abstracción innecesaria (sobre-ingeniería / *over-engineering*):
 
-### Tus responsabilidades respecto al negocio:
-1. **Captura inmediata de requerimientos:**
-   Cada vez que el usuario mencione una condición, flujo o requerimiento solicitado por el cliente (ej. *"el cliente pide que los empleados no puedan ver reportes de ventas"*), **debes registrarlo de inmediato** en `docs/business_rules.md` asignándole un código (ej. `RN-VENTAS-02`) y su estado (🔴 Planificado).
-2. **Consulta previa antes de programar:**
-   Antes de codificar un módulo o endpoint, consulta `docs/business_rules.md` para asegurarte de respetar todas las reglas y restricciones del cliente.
-3. **Actualización de estado:**
-   Cuando termines de implementar una regla de negocio, actualiza su estado a 🟢 [Completado] en `docs/business_rules.md`.
+```
+Solicitud HTTP ──> [Form Request (Validación)] ──> [Controlador Limpio] ──> [Modelo / BD] ──> [API Resource (JSON)]
+                                                          │ (Si falla)
+                                                          ▼
+                                            [Log Categorizado en Docker]
+```
 
----
-
-## 🏗️ 3. Estándares de Programación de la API
-
-1. **Rutas:** Registrar en `routes/api.php` bajo el prefijo `/api/v1/`.
-2. **Controladores:** Ubicar en `app/Http/Controllers/Api/V1/`.
-3. **Validación:** Usar siempre **Form Requests** (`app/Http/Requests/...`). No validar directamente en controladores.
-4. **Respuestas:** Usar siempre **API Resources** (`app/Http/Resources/...`) para garantizar respuestas JSON predecibles.
-5. **Roles de Usuario:** Usar el enum `App\Enums\UserRole` (`client`, `employee`, `manager`, `admin`).
-6. **Protección de Rutas:** Usar `auth:sanctum` para autenticación y `role:nombre_rol` para permisos.
+### Reglas de los Controladores:
+* **Controladores Delgados:** El controlador únicamente orquesta la petición:
+  1. Recibe el **Form Request** ya validado.
+  2. Ejecuta la operación contra el Modelo Eloquent (o transacción si abarca varias tablas).
+  3. Registra logs categorizados si ocurre una excepción.
+  4. Retorna un **API Resource** con el código de estado HTTP correspondiente.
+* **Sin sobre-abstracción:** No crear capas Repository, Interfaces o DTOs artificiales para operaciones CRUD directas. Usar Eloquent de forma idiomática y limpia.
 
 ---
 
-## 📖 4. Documentación Activa del Proyecto
+## 🔒 3. Seguridad y Validación de Endpoints
 
-Solo se mantienen dos archivos de documentación técnica:
-1. **[`docs/openapi.yaml`](docs/openapi.yaml):** Actualizar cada vez que se cree, modifique o elimine un endpoint.
-2. **[`README.md`](README.md):** Actualizar si hay cambios en la instalación o comandos de ejecución del proyecto.
+1. **Endpoints Privados:**
+   * Todo endpoint operativo del negocio debe estar protegido obligatoriamente con `auth:sanctum`.
+   * Si el recurso está reservado a roles específicos, proteger con el middleware `role:admin,manager,employee`.
+2. **Endpoints Públicos:**
+   * Únicamente rutas que no requieren sesión (`/login`, `/register`, `/health`).
+3. **Validación Obligatoria con Form Requests:**
+   * **PROHIBIDO** validar con `$request->validate()` dentro del controlador.
+   * Toda petición con carga de datos (`POST`, `PUT`, `PATCH`) debe tener su clase dedicada en `app/Http/Requests/<Modulo>/`.
+   * Los mensajes de error de validación deben estar en **español**.
+
+---
+
+## 📤 4. Transformación de Respuestas (API Resources)
+
+* **PROHIBIDO** retornar modelos Eloquent directamente en crudo (ej. `return User::all();`).
+* **SIEMPRE** transformar las respuestas mediante clases **API Resource** en `app/Http/Resources/<Modulo>/`:
+  * Para un registro: `return new ClienteResource($cliente);`
+  * Para colecciones paginadas: `return ClienteResource::collection($clientes);`
+* Garantiza que los nombres de campos en el JSON sean consistentes y no se expongan campos internos no deseados.
+
+---
+
+## 📝 5. Sistema de Logs Categorizado en Español (Monitoreo en Docker)
+
+Para facilitar la supervisión del sistema en tiempo real a través de los logs de Docker (`docker compose logs -f app`), los errores y eventos clave deben registrarse siguiendo un estándar uniforme:
+
+### Formato de Registro:
+```php
+Log::error("[MODULO_TIPO] Mensaje explicativo en español", [
+    'user_id' => $request->user()?->id,
+    'contexto' => $datosRelevantes,
+    'error' => $e->getMessage(),
+]);
+```
+
+### Prefijos de Categoría por Módulo:
+* **Autenticación:** `[AUTH_INFO]`, `[AUTH_ERROR]`, `[AUTH_WARN]`
+* **Clientes:** `[CLIENTES_INFO]`, `[CLIENTES_ERROR]`
+* **Generadores:** `[GENERADORES_INFO]`, `[GENERADORES_ERROR]`
+* **Tracking / Puntos de Control:** `[TRACKING_INFO]`, `[TRACKING_ERROR]`
+* **Reportes:** `[REPORTES_INFO]`, `[REPORTES_ERROR]`
+
+---
+
+## 📖 6. Documentación Activa y en Español
+
+1. **OpenAPI (`docs/openapi.yaml`):**
+   * Cada endpoint debe documentarse en [`docs/openapi.yaml`](docs/openapi.yaml) antes de dar por completada la tarea.
+   * **Todo el texto debe estar en español:** títulos, descripciones, nombres de parámetros, ejemplos y respuestas.
+2. **Libro de Reglas de Negocio (`docs/business_rules.md`):**
+   * Toda nueva condición o flujo indicado por el cliente debe registrarse con su código `RN-[MODULO]-[NUMERO]`.
