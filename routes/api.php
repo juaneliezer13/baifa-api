@@ -15,7 +15,7 @@ Route::get('/v1/health', function () {
 
     return response()->json([
         'status' => 'ok',
-        'app' => 'BAIFA-APP',
+        'app' => 'baifa-api',
         'database' => $dbStatus,
         'timestamp' => now()->toIso8601String(),
     ]);

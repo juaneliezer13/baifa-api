@@ -1,9 +1,9 @@
-﻿services:
+services:
   app:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: baifa_app
+    container_name: baifa_api_app
     restart: unless-stopped
     working_dir: /var/www
     volumes:
@@ -16,7 +16,7 @@
 
   webserver:
     image: nginx:alpine
-    container_name: baifa_webserver
+    container_name: baifa_api_webserver
     restart: unless-stopped
     ports:
       - "8000:80"
@@ -30,17 +30,17 @@
 
   db:
     image: mysql:8.0
-    container_name: baifa_db
+    container_name: baifa_api_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: baifa_app
+      MYSQL_DATABASE: baifa_api
       MYSQL_USER: baifa_user
       MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: root_secret
     ports:
       - "3306:3306"
     volumes:
-      - baifa_dbdata:/var/lib/mysql
+      - baifa_api_dbdata:/var/lib/mysql
     networks:
       - baifa_network
     healthcheck:
@@ -55,5 +55,5 @@ networks:
     driver: bridge
 
 volumes:
-  baifa_dbdata:
+  baifa_api_dbdata:
     driver: local
