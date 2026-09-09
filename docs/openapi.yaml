@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: baifa-api
+  description: >
+    Especificación OpenAPI de la API RESTful **baifa-api**.
+    Desarrollada con Laravel 12 y desplegada sobre contenedores Docker (Nginx, PHP 8.4-FPM y MySQL 8.0).
+  version: 1.0.0
+  contact:
+    name: Juan Chirinos
+    email: juaneliezer13@gmail.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Entorno de Desarrollo Local (Docker)
+
+tags:
+  - name: Sistema
+    description: Endpoints de diagnóstico, métricas y estado del sistema
+
+paths:
+  /v1/health:
+    get:
+      tags:
+        - Sistema
+      summary: Diagnóstico y estado de salud de la API
+      description: >
+        Devuelve el estado operativo del servicio baifa-api, verificando
+        la respuesta del framework y la conectividad activa con el motor de base de datos MySQL.
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: API y base de datos operativas correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  summary: Respuesta saludable
+                  value:
+                    status: ok
+                    app: baifa-api
+                    database: connected
+                    timestamp: '2026-09-09T11:44:03+00:00'
+        '500':
+          description: Error interno o pérdida de conexión con la base de datos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - app
+        - database
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+          description: Estado general de la API.
+          example: ok
+        app:
+          type: string
+          description: Nombre de la aplicación.
+          example: baifa-api
+        database:
+          type: string
+          description: Estado de la conexión a la base de datos MySQL.
+          example: connected
+        timestamp:
+          type: string
+          format: date-time
+          description: Marca de tiempo en formato ISO 8601.
+          example: '2026-09-09T11:44:03+00:00'
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Mensaje descriptivo del error ocurrido.
+          example: No se pudo conectar al servidor de base de datos MySQL.
+        errors:
+          type: object
+          description: Detalle de errores específicos o de validación si aplica.
+          additionalProperties:
+            type: array
+            items:
+              type: string

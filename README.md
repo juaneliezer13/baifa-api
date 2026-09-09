@@ -1,58 +1,173 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# baifa-api 🚀
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
+[![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-## About Laravel
+**baifa-api** es una API RESTful desarrollada con el framework Laravel y desplegada mediante una arquitectura modular en contenedores Docker (Nginx + PHP 8.4-FPM + MySQL 8.0). Está concebida siguiendo los estándares modernos de desarrollo de software, documentación OpenAPI y soporte optimizado para desarrollo asistido por Inteligencia Artificial (Antigravity, Claude, LLMs).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🏛️ Arquitectura del Sistema
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+El entorno de desarrollo está 100% contenerizado para garantizar paridad entre entornos:
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+                  +-------------------------------------------------+
+                  |                   HOST / CLIENT                 |
+                  |     (Navegador, Postman, Frontend, curl)        |
+                  +-------------------------------------------------+
+                                           |
+                                      Puerto 8000
+                                           v
++-----------------------------------------------------------------------------------+
+| Red Docker: baifa_network                                                         |
+|                                                                                   |
+|  +--------------------+       FastCGI (9000)      +----------------------------+  |
+|  |  baifa_api_web     | ------------------------> |       baifa_api_app        |  |
+|  |  (Nginx Alpine)    |                           |       (PHP 8.4-FPM)        |  |
+|  +--------------------+                           |   + Composer + Exts        |  |
+|                                                   +----------------------------+  |
+|                                                                  |                |
+|                                                          MySQL (3306)             |
+|                                                                  v                |
+|                                                   +----------------------------+  |
+|                                                   |        baifa_api_db        |  |
+|                                                   |        (MySQL 8.0)         |  |
+|                                                   |   Volumen: baifa_api_dbdata|  |
+|                                                   +----------------------------+  |
++-----------------------------------------------------------------------------------+
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Para más detalles, consulta [docs/architecture.md](docs/architecture.md).
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 📋 Requisitos Previos
 
-## Code of Conduct
+* **Docker Engine** (v24.0 o superior) y **Docker Compose** (v2.x).
+* En Windows: **WSL 2** con distribución Ubuntu recomendada.
+* **Git** (v2.x).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> [!NOTE]
+> No necesitas tener PHP, Composer ni MySQL instalados en tu máquina anfitriona; todo se ejecuta dentro de los contenedores Docker.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ⚡ Inicio Rápido
 
-## License
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/baifa-api.git
+cd baifa-api
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 2. Configurar variables de entorno
+```bash
+cp .env.example .env
+```
+
+### 3. Levantar los contenedores Docker
+```bash
+docker compose up -d
+```
+> La primera vez construirá la imagen personalizada de PHP 8.4 con las extensiones (`pdo_mysql`, `gd`, `zip`, etc.) y descargará las imágenes de Nginx y MySQL.
+
+### 4. Generar App Key y Ejecutar Migraciones
+```bash
+# Generar clave de aplicación (si no está generada en el .env)
+docker compose exec app php artisan key:generate
+
+# Ejecutar migraciones en MySQL
+docker compose exec app php artisan migrate
+```
+
+### 5. Probar el Endpoint de Salud
+```bash
+curl http://localhost:8000/api/v1/health
+```
+**Respuesta esperada:**
+```json
+{
+  "status": "ok",
+  "app": "baifa-api",
+  "database": "connected",
+  "timestamp": "2026-09-09T11:44:03+00:00"
+}
+```
+
+---
+
+## 📖 Documentación de la API
+
+La especificación completa de la API se encuentra documentada bajo el estándar **OpenAPI 3.1**:
+
+* **Especificación OpenAPI:** [`docs/openapi.yaml`](docs/openapi.yaml)
+* **Endpoints Principales:**
+  * `GET /api/v1/health`: Estado de los servicios y conectividad con la base de datos MySQL.
+  * `GET /up`: Health check interno de Laravel.
+
+Puedes visualizar y probar la especificación OpenAPI importando el archivo `docs/openapi.yaml` en **Postman**, **Swagger Editor** o la extensión **OpenAPI (Swagger) Editor** de VS Code.
+
+---
+
+## 🛠️ Comandos de Desarrollo Frecuentes
+
+Todos los comandos se ejecutan a través de Docker Compose:
+
+```bash
+# Ver estado de los contenedores
+docker compose ps
+
+# Ver logs de todos los servicios en tiempo real
+docker compose logs -f
+
+# Crear un nuevo controlador de API
+docker compose exec app php artisan make:controller Api/V1/NombreController --api
+
+# Crear una migración y su modelo
+docker compose exec app php artisan make:model Nombre -m
+
+# Ejecutar migraciones
+docker compose exec app php artisan migrate
+
+# Revertir última migración
+docker compose exec app php artisan migrate:rollback
+
+# Ejecutar pruebas unitarias y de integración
+docker compose exec app php artisan test
+
+# Dar formato al código con Laravel Pint
+docker compose exec app ./vendor/bin/pint
+
+# Instalar una nueva dependencia de Composer
+docker compose exec app composer require nombre/paquete
+```
+
+---
+
+## 🤖 Directrices para Modelos de Lenguaje y Agentes de IA
+
+Este repositorio incluye instrucciones específicas para asistentes de código y modelos de lenguaje (como Google Antigravity, Claude, Cursor y GitHub Copilot):
+
+* [`AGENTS.md`](AGENTS.md): Reglas de entorno, comandos permitidos, arquitectura y cómo documentar cambios automáticamente.
+* [`CLAUDE.md`](CLAUDE.md): Directrices para interacciones con Claude.
+* [`.cursorrules`](.cursorrules): Reglas de estilo y contexto para Cursor / IDEs modernos.
+* Decisiones de Arquitectura (ADR): Consultar en [`docs/adr/`](docs/adr/).
+
+---
+
+## 🤝 Contribuir
+
+Agradecemos todas las contribuciones al proyecto. Por favor consulta [`CONTRIBUTING.md`](CONTRIBUTING.md) para conocer nuestro flujo de trabajo con Git, la convención de commits (Conventional Commits) y los estándares de código.
+
+Consulta el historial de cambios en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo los términos de la [Licencia MIT](LICENSE).

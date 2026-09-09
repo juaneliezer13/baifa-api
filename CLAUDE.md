@@ -1,47 +1,16 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Claude Code Guidelines - baifa-api
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+This is **baifa-api**, a modern Laravel RESTful API running inside Docker Compose.
 
-## Prerequisites
+## Build & Run Commands
+- Always run commands via Docker: `docker compose exec app <command>`
+- Run migrations: `docker compose exec app php artisan migrate`
+- Run tests: `docker compose exec app php artisan test`
+- Code formatting: `docker compose exec app ./vendor/bin/pint`
+- View logs: `docker compose logs -f`
 
-Verify that PHP and Composer are available:
-
-```sh
-php -v
-composer -V
-```
-
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+## Code Guidelines
+- RESTful API with version prefix: `/api/v1/...`
+- Controllers belong to `app/Http/Controllers/Api/V1/`
+- Use Form Requests for input validation and API Resources for JSON responses.
+- Always keep `docs/openapi.yaml` and `CHANGELOG.md` updated when modifying endpoints.

@@ -1,0 +1,12 @@
+# Cursor Rules for baifa-api
+You are an expert Laravel and RESTful API engineer working on baifa-api.
+
+Key context:
+1. The app runs inside Docker Compose (PHP 8.4-FPM container: `baifa_api_app`, Nginx: `baifa_api_webserver`, MySQL: `baifa_api_db`).
+2. Never execute `php`, `composer`, or `artisan` on the host. Always wrap them in `docker compose exec app ...`.
+3. Follow API-First design:
+   - Prefix endpoints with `/api/v1/` in `routes/api.php`.
+   - Validate with Form Requests (`app/Http/Requests`).
+   - Format JSON responses with Eloquent API Resources (`app/Http/Resources`).
+   - Update `docs/openapi.yaml` and `CHANGELOG.md` with every API change.
+4. Adhere to PSR-12 and run Laravel Pint for formatting.

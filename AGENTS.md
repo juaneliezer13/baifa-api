@@ -1,47 +1,60 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Directrices para Agentes de IA y Modelos de Lenguaje (Antigravity, Claude, LLMs)
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Este repositorio contiene la API RESTful **baifa-api**. Cualquier modelo de lenguaje o agente autónomo (Google Antigravity, Claude, Cursor, ChatGPT, etc.) que trabaje en este código DEBE adherirse a las siguientes directrices operativas y de arquitectura.
 
-## Prerequisites
+---
 
-Verify that PHP and Composer are available:
+## ⚠️ Regla de Oro del Entorno (Docker Obligatorio)
 
-```sh
-php -v
-composer -V
-```
+* **NUNCA ejecutes `php`, `composer` ni `mysql` directamente en el shell del host.** El host puede no tener estas herramientas instaladas.
+* **TODOS los comandos de Laravel, Composer y base de datos deben ejecutarse a través de Docker Compose:**
+  ```bash
+  # Artisan
+  docker compose exec app php artisan <comando>
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+  # Composer
+  docker compose exec app composer <comando>
 
-macOS:
+  # Testing
+  docker compose exec app php artisan test
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
+  # Formateo (Pint)
+  docker compose exec app ./vendor/bin/pint
+  ```
 
-Windows PowerShell:
+---
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+## 🏗️ Pila Tecnológica y Contenedores
 
-Linux:
+| Servicio | Nombre Contenedor | Tecnologías |
+| :--- | :--- | :--- |
+| `app` | `baifa_api_app` | PHP 8.4-FPM, Composer, extensiones: `pdo_mysql`, `gd`, `zip`, `bcmath`, etc. |
+| `webserver` | `baifa_api_webserver` | Nginx Alpine (escucha en `http://localhost:8000`, pasa FastCGI a `app:9000`) |
+| `db` | `baifa_api_db` | MySQL 8.0 (puerto `3306`, BD: `baifa_api`, usuario: `baifa_user`) |
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
+---
 
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
+## 📐 Convenciones de Código y Arquitectura
 
-## Agent Setup
+1. **Rutas y Versionado:**
+   * Todas las rutas de API se registran en `routes/api.php` con prefijo `/v1/` (generando `/api/v1/...`).
+   * No uses vistas Blade ni rutas HTML para funcionalidades de la API.
+2. **Controladores y Respuestas:**
+   * Ubica los controladores en `app/Http/Controllers/Api/V1/`.
+   * Usa siempre **API Resources** (`php artisan make:resource`) para transformar respuestas de modelos Eloquent a JSON. No devuelvas modelos Eloquent directamente.
+   * Valida entradas mediante **Form Requests** dedicados (`php artisan make:request`) en lugar de validar en el controlador.
+3. **Manejo de Errores:**
+   * Las excepciones deben devolver respuestas JSON coherentes con código de estado HTTP adecuado (400, 401, 403, 404, 422, 500).
+4. **Pruebas Automatizadas:**
+   * Cada nuevo endpoint debe incluir al menos una prueba de integración (Feature Test) en `tests/Feature/`.
+   * Ejecuta siempre `docker compose exec app php artisan test` antes de considerar una tarea completada.
 
-Install Laravel Boost from the application root before making application changes:
+---
 
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
+## 📝 Reglas de Documentación Continua
 
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+Cada vez que realices modificaciones en la API:
+1. **Especificación OpenAPI:** Actualiza inmediatamente [`docs/openapi.yaml`](docs/openapi.yaml) con los nuevos endpoints, esquemas de solicitud/respuesta y códigos de error.
+2. **Changelog:** Registra los cambios en la sección `[Unreleased]` de [`CHANGELOG.md`](CHANGELOG.md).
+3. **Decisiones Significativas:** Si introduces un nuevo paquete de terceros, cambias el motor de base de datos o alteras el flujo de autenticación, redacta un nuevo ADR en [`docs/adr/`](docs/adr/).
+4. **Commits:** Usa la convención de [Conventional Commits](CONTRIBUTING.md) (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`).
