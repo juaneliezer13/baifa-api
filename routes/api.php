@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +41,9 @@ Route::prefix('v1/auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 });
+
+// Gestión de Usuarios del Sistema (Exclusivo Administrador)
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('v1')->group(function () {
+    Route::apiResource('users', UserController::class);
+});
+
