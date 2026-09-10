@@ -17,9 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@baifa.com.ve'],
+            [
+                'name' => 'Adriana Morales',
+                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'role' => \App\Enums\UserRole::ADMIN,
+            ]
+        );
     }
 }
