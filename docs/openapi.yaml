@@ -196,7 +196,9 @@ paths:
       tags:
         - Clientes
       summary: Registro de nueva empresa cliente
-      description: Da de alta una nueva empresa en el directorio fiscal.
+      description: >
+        Da de alta una nueva empresa en el directorio fiscal y genera automáticamente una cuenta de usuario
+        con rol 'client' utilizando el nombre y correo de contacto, enviándole sus credenciales iniciales.
       operationId: createClient
       security:
         - bearerAuth: []
@@ -208,7 +210,7 @@ paths:
               $ref: '#/components/schemas/StoreClientRequest'
       responses:
         '201':
-          description: Cliente registrado exitosamente.
+          description: Cliente registrado exitosamente y usuario vinculado autogenerado.
           content:
             application/json:
               schema:
@@ -216,11 +218,11 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Cliente registrado exitosamente.
+                    example: Cliente y usuario de acceso creados exitosamente.
                   client:
                     $ref: '#/components/schemas/Client'
         '422':
-          description: Error de validación (RIF duplicado o formato inválido).
+          description: Error de validación (RIF duplicado, correo ya existente en usuarios, etc.).
 
   /v1/clients/{id}:
     get:
@@ -253,6 +255,9 @@ paths:
       tags:
         - Clientes
       summary: Actualización de datos de un cliente
+      description: >
+        Actualiza los datos fiscales o de contacto de una empresa cliente. Si se modifica el correo de contacto,
+        se sincroniza automáticamente con la cuenta de usuario vinculada.
       operationId: updateClient
       security:
         - bearerAuth: []

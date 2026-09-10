@@ -51,4 +51,19 @@ class StoreUserRequest extends FormRequest
             'role.enum' => 'El rol seleccionado no es válido.',
         ];
     }
+
+    /**
+     * Configuración posterior del validador para reglas de negocio.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('role') === UserRole::CLIENT->value) {
+                $validator->errors()->add(
+                    'role',
+                    'Los usuarios de tipo cliente solo pueden crearse a través del módulo de clientes.'
+                );
+            }
+        });
+    }
 }

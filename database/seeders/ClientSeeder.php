@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Client;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class ClientSeeder extends Seeder
 {
@@ -56,10 +59,22 @@ class ClientSeeder extends Seeder
         ];
 
         foreach ($clients as $data) {
-            Client::firstOrCreate(
-                ['rif' => $data['rif']],
-                $data
+            $user = User::firstOrCreate(
+                ['email' => $data['contact_email']],
+                [
+                    'name' => $data['contact_name'],
+                    'password' => Hash::make('12345678'),
+                    'role' => UserRole::CLIENT,
+                    'is_active' => $data['is_active'],
+                ]
             );
+
+            $data['user_id'] = $user->id;
+
+            $client = Client::firstOrNew(['rif' => $data['rif']]);
+            $client->fill($data);
+            $client->user_id = $user->id;
+            $client->save();
         }
     }
 }

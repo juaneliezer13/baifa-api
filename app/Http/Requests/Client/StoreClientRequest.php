@@ -47,7 +47,7 @@ class StoreClientRequest extends FormRequest
             ],
             'office_phone' => ['nullable', 'string', 'max:50'],
             'contact_name' => ['required', 'string', 'max:255'],
-            'contact_email' => ['required', 'string', 'email', 'max:255'],
+            'contact_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'contact_phone' => ['nullable', 'string', 'max:50'],
             'is_active' => ['sometimes', 'boolean'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -70,6 +70,7 @@ class StoreClientRequest extends FormRequest
             'contact_name.required' => 'El nombre de la persona de contacto es obligatorio.',
             'contact_email.required' => 'El correo electrónico de contacto es obligatorio.',
             'contact_email.email' => 'El correo de contacto no tiene un formato válido.',
+            'contact_email.unique' => 'Ya existe un usuario registrado con este correo electrónico de contacto.',
             'user_id.exists' => 'El usuario asociado especificado no existe.',
         ];
     }

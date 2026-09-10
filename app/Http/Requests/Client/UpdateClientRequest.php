@@ -36,9 +36,12 @@ class UpdateClientRequest extends FormRequest
      */
     public function rules(): array
     {
-        $clientId = $this->route('client') instanceof \App\Models\Client 
-            ? $this->route('client')->id 
-            : $this->route('client');
+        $clientParam = $this->route('client');
+        $client = $clientParam instanceof \App\Models\Client 
+            ? $clientParam 
+            : \App\Models\Client::find($clientParam);
+        $clientId = $client?->id;
+        $linkedUserId = $client?->user_id;
 
         return [
             'company_fiscal_name' => ['sometimes', 'required', 'string', 'max:255'],
@@ -53,7 +56,14 @@ class UpdateClientRequest extends FormRequest
             ],
             'office_phone' => ['nullable', 'string', 'max:50'],
             'contact_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'contact_email' => ['sometimes', 'required', 'string', 'email', 'max:255'],
+            'contact_email' => [
+                'sometimes',
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($linkedUserId),
+            ],
             'contact_phone' => ['nullable', 'string', 'max:50'],
             'is_active' => ['sometimes', 'boolean'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -76,6 +86,7 @@ class UpdateClientRequest extends FormRequest
             'contact_name.required' => 'El nombre de la persona de contacto es obligatorio.',
             'contact_email.required' => 'El correo electrónico de contacto es obligatorio.',
             'contact_email.email' => 'El correo de contacto no tiene un formato válido.',
+            'contact_email.unique' => 'Ya existe otro usuario registrado con este correo electrónico de contacto.',
             'user_id.exists' => 'El usuario asociado especificado no existe.',
         ];
     }

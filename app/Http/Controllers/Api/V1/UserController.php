@@ -125,6 +125,14 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        // Si el usuario es de tipo cliente y se modificó su correo, sincronizarlo con su ficha de cliente
+        if ($user->isClient() && isset($validated['email'])) {
+            $client = $user->client ?? \App\Models\Client::where('user_id', $user->id)->first();
+            if ($client && $client->contact_email !== $validated['email']) {
+                $client->update(['contact_email' => $validated['email']]);
+            }
+        }
+
         return response()->json([
             'message' => 'Usuario actualizado exitosamente.',
             'user' => new UserResource($user->fresh()),

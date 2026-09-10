@@ -54,4 +54,25 @@ class UpdateUserRequest extends FormRequest
             'role.enum' => 'El rol seleccionado no es válido.',
         ];
     }
+
+    /**
+     * Configuración posterior del validador para reglas de negocio de usuarios.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $userParam = $this->route('user');
+            $targetUser = $userParam instanceof User ? $userParam : User::find($userParam);
+
+            if ($targetUser && $targetUser->isClient()) {
+                if ($this->has('role') && $this->input('role') !== UserRole::CLIENT->value) {
+                    $validator->errors()->add('role', 'No se puede cambiar el rol a un usuario de tipo cliente.');
+                }
+            } elseif ($targetUser && ! $targetUser->isClient()) {
+                if ($this->has('role') && $this->input('role') === UserRole::CLIENT->value) {
+                    $validator->errors()->add('role', 'Los usuarios de tipo cliente solo pueden crearse a través del módulo de clientes.');
+                }
+            }
+        });
+    }
 }

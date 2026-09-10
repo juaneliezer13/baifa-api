@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
+use App\Mail\WelcomeUserCreatedMail;
 use App\Models\Client;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ClientController extends Controller
 {
@@ -38,27 +45,55 @@ class ClientController extends Controller
     }
 
     /**
-     * Registra una nueva empresa / cliente en el directorio fiscal.
+     * Registra una nueva empresa / cliente en el directorio fiscal y crea su cuenta de usuario con rol cliente.
      */
     public function store(StoreClientRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        $client = Client::create([
-            'company_fiscal_name' => $validated['company_fiscal_name'],
-            'company_short_name' => $validated['company_short_name'],
-            'rif' => $validated['rif'],
-            'office_phone' => $validated['office_phone'] ?? null,
-            'contact_name' => $validated['contact_name'],
-            'contact_email' => $validated['contact_email'],
-            'contact_phone' => $validated['contact_phone'] ?? null,
-            'is_active' => $validated['is_active'] ?? true,
-            'user_id' => $validated['user_id'] ?? null,
-        ]);
+        $client = DB::transaction(function () use ($validated) {
+            $isActive = $validated['is_active'] ?? true;
+
+            // 1. Crear usuario con rol de cliente a partir de los datos de contacto
+            $user = User::create([
+                'name' => $validated['contact_name'],
+                'email' => $validated['contact_email'],
+                'password' => Hash::make('12345678'),
+                'role' => UserRole::CLIENT,
+                'is_active' => $isActive,
+            ]);
+
+            // 2. Crear ficha de cliente vinculada a la cuenta de usuario
+            $client = Client::create([
+                'company_fiscal_name' => $validated['company_fiscal_name'],
+                'company_short_name' => $validated['company_short_name'],
+                'rif' => $validated['rif'],
+                'office_phone' => $validated['office_phone'] ?? null,
+                'contact_name' => $validated['contact_name'],
+                'contact_email' => $validated['contact_email'],
+                'contact_phone' => $validated['contact_phone'] ?? null,
+                'is_active' => $isActive,
+                'user_id' => $user->id,
+            ]);
+
+            return $client;
+        });
+
+        // 3. Enviar correo de notificación con credenciales de acceso iniciales
+        try {
+            Mail::to($client->contact_email)->send(new WelcomeUserCreatedMail(
+                userName: $client->contact_name,
+                userEmail: $client->contact_email,
+                roleName: 'Cliente',
+                initialPassword: '12345678'
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar correo de bienvenida al cliente: ' . $e->getMessage());
+        }
 
         return response()->json([
-            'message' => 'Cliente registrado exitosamente.',
-            'client' => new ClientResource($client),
+            'message' => 'Cliente y usuario de acceso creados exitosamente.',
+            'client' => new ClientResource($client->load('user')),
         ], 201);
     }
 
@@ -74,12 +109,32 @@ class ClientController extends Controller
 
     /**
      * Actualiza los datos fiscales o de contacto de un cliente existente.
+     * Sincroniza automáticamente el correo del usuario cliente asociado si se modifica.
      */
     public function update(UpdateClientRequest $request, Client $client): JsonResponse
     {
         $validated = $request->validated();
 
-        $client->update($validated);
+        DB::transaction(function () use ($client, $validated) {
+            $client->update($validated);
+
+            // Sincronizar datos con la cuenta de usuario vinculada
+            if ($client->user) {
+                $userUpdates = [];
+
+                if (isset($validated['contact_email']) && $client->user->email !== $validated['contact_email']) {
+                    $userUpdates['email'] = $validated['contact_email'];
+                }
+
+                if (isset($validated['is_active'])) {
+                    $userUpdates['is_active'] = (bool) $validated['is_active'];
+                }
+
+                if (! empty($userUpdates)) {
+                    $client->user->update($userUpdates);
+                }
+            }
+        });
 
         return response()->json([
             'message' => 'Cliente actualizado exitosamente.',
@@ -88,13 +143,20 @@ class ClientController extends Controller
     }
 
     /**
-     * Alterna el estado operativo (Activo / Inactivo) de una empresa cliente.
+     * Alterna el estado operativo (Activo / Inactivo) de una empresa cliente y su usuario asociado.
      */
     public function toggleStatus(Client $client): JsonResponse
     {
+        $newStatus = ! $client->is_active;
         $client->update([
-            'is_active' => ! $client->is_active,
+            'is_active' => $newStatus,
         ]);
+
+        if ($client->user) {
+            $client->user->update([
+                'is_active' => $newStatus,
+            ]);
+        }
 
         $statusMsg = $client->is_active ? 'Cliente activado exitosamente.' : 'Cliente desactivado exitosamente.';
 
@@ -106,9 +168,15 @@ class ClientController extends Controller
 
     /**
      * Elimina lógicamente (SoftDelete) un cliente del directorio fiscal.
+     * Revoca los tokens de acceso y desactiva al usuario asociado.
      */
     public function destroy(Client $client): JsonResponse
     {
+        if ($client->user) {
+            $client->user->tokens()->delete();
+            $client->user->update(['is_active' => false]);
+        }
+
         $client->delete();
 
         return response()->json([
