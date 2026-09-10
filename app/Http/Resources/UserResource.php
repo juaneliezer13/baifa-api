@@ -29,6 +29,18 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'is_self' => $request->user()?->id === $this->id,
+            'client_id' => $this->client?->id,
+            'client' => $this->client ? [
+                'id' => $this->client->id,
+                'company_fiscal_name' => $this->client->company_fiscal_name,
+                'company_short_name' => $this->client->company_short_name,
+                'rif' => $this->client->rif,
+                'office_phone' => $this->client->office_phone,
+                'contact_name' => $this->client->contact_name,
+                'contact_email' => $this->client->contact_email,
+                'contact_phone' => $this->client->contact_phone,
+                'is_active' => (bool) $this->client->is_active,
+            ] : null,
         ];
     }
 }
