@@ -151,6 +151,13 @@ class UserController extends Controller
             ], 403);
         }
 
+        // Regla de negocio: No permitir eliminación directa de usuarios tipo cliente
+        if ($user->isClient()) {
+            return response()->json([
+                'message' => 'No se puede eliminar directamente un usuario de tipo cliente. Para poder eliminar este usuario, debe eliminar primero la empresa cliente asociada desde el módulo de Clientes.',
+            ], 422);
+        }
+
         // Revocar todos los tokens de acceso del usuario antes de eliminar
         $user->tokens()->delete();
 

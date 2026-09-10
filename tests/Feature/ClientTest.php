@@ -208,7 +208,7 @@ class ClientTest extends TestCase
         $this->assertFalse($user->fresh()->is_active);
     }
 
-    public function test_deleting_client_deactivates_user_and_revokes_tokens(): void
+    public function test_deleting_client_also_deletes_associated_user(): void
     {
         $user = User::factory()->create([
             'role' => UserRole::CLIENT,
@@ -233,8 +233,21 @@ class ClientTest extends TestCase
         // Client soft deleted
         $this->assertSoftDeleted('clients', ['id' => $client->id]);
 
-        // User deactivated and tokens revoked
-        $this->assertFalse($user->fresh()->is_active);
-        $this->assertCount(0, $user->fresh()->tokens);
+        // User deleted from database
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    }
+
+    public function test_user_cannot_be_deleted_directly_if_it_is_a_client_user(): void
+    {
+        $clientUser = User::factory()->create([
+            'role' => UserRole::CLIENT,
+        ]);
+
+        $response = $this->actingAs($this->admin)->deleteJson("/api/v1/users/{$clientUser->id}");
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'No se puede eliminar directamente un usuario de tipo cliente. Para poder eliminar este usuario, debe eliminar primero la empresa cliente asociada desde el módulo de Clientes.');
+
+        $this->assertDatabaseHas('users', ['id' => $clientUser->id]);
     }
 }

@@ -289,7 +289,10 @@ paths:
     delete:
       tags:
         - Clientes
-      summary: Eliminación lógica de un cliente
+      summary: Eliminación de cliente y usuario asociado
+      description: >
+        Elimina lógicamente (SoftDelete) la empresa del directorio fiscal y elimina definitivamente su usuario
+        cliente asociado en la tabla users, revocando todos sus tokens de acceso.
       operationId: deleteClient
       security:
         - bearerAuth: []
@@ -301,7 +304,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: Cliente eliminado exitosamente.
+          description: Cliente y su usuario asociado eliminados exitosamente.
 
   /v1/clients/{id}/toggle-status:
     patch:

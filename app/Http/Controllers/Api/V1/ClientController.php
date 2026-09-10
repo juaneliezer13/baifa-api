@@ -167,20 +167,24 @@ class ClientController extends Controller
     }
 
     /**
-     * Elimina lógicamente (SoftDelete) un cliente del directorio fiscal.
-     * Revoca los tokens de acceso y desactiva al usuario asociado.
+     * Elimina lógicamente (SoftDelete) un cliente del directorio fiscal y elimina su usuario asociado.
+     * Revoca los tokens de acceso y elimina al usuario de la tabla users.
      */
     public function destroy(Client $client): JsonResponse
     {
-        if ($client->user) {
-            $client->user->tokens()->delete();
-            $client->user->update(['is_active' => false]);
-        }
+        DB::transaction(function () use ($client) {
+            $user = $client->user;
 
-        $client->delete();
+            $client->delete();
+
+            if ($user) {
+                $user->tokens()->delete();
+                $user->delete();
+            }
+        });
 
         return response()->json([
-            'message' => 'Cliente eliminado exitosamente.',
+            'message' => 'Cliente y su usuario asociado eliminados exitosamente.',
         ]);
     }
 }
