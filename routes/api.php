@@ -34,6 +34,8 @@ Route::prefix('v1/auth')->group(function () {
     // Rutas públicas
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
     // Rutas protegidas
     Route::middleware('auth:sanctum')->group(function () {

@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\WelcomeUserCreatedMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -61,6 +64,28 @@ class UserController extends Controller
             'role' => $validated['role'],
             'is_active' => $validated['is_active'] ?? true,
         ]);
+
+        // Enviar correo de notificación al nuevo usuario con su contraseña inicial
+        try {
+            $roleValue = $user->role->value ?? (string) $user->role;
+            $roleLabel = match ($roleValue) {
+                'admin' => 'Administrador',
+                'operator' => 'Operador',
+                'auditor' => 'Auditor',
+                'client' => 'Cliente',
+                'employee' => 'Empleado',
+                default => ucfirst($roleValue),
+            };
+
+            Mail::to($user->email)->send(new WelcomeUserCreatedMail(
+                userName: $user->name,
+                userEmail: $user->email,
+                roleName: $roleLabel,
+                initialPassword: $validated['password']
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar correo de bienvenida de usuario creado: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Usuario creado exitosamente.',
