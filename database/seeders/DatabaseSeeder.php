@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
                 'role' => \App\Enums\UserRole::ADMIN,
             ]
         );
+
+        $this->call(ClientSeeder::class);
+
     }
 }

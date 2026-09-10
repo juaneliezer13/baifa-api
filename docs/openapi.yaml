@@ -20,6 +20,8 @@ tags:
     description: Registro, inicio de sesión, perfil y revocación de tokens con Laravel Sanctum.
   - name: Sistema
     description: Endpoints de diagnóstico, métricas y estado del sistema.
+  - name: Clientes
+    description: Directorio fiscal de empresas clientes, ficha jurídica y personas de contacto.
 
 paths:
   /v1/health:
@@ -150,7 +152,181 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/clients:
+    get:
+      tags:
+        - Clientes
+      summary: Listado del directorio fiscal de clientes
+      description: Retorna la lista de clientes con soporte para búsqueda textual y filtro de estado.
+      operationId: listClients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Término de búsqueda en razón social, nombre corto, RIF o contacto.
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filtrar por estado (active, inactive, all).
+          required: false
+          schema:
+            type: string
+            enum: [active, inactive, all]
+      responses:
+        '200':
+          description: Listado obtenido exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+        '401':
+          description: No autenticado.
+        '403':
+          description: Permisos insuficientes (exclusivo para personal operativo).
+
+    post:
+      tags:
+        - Clientes
+      summary: Registro de nueva empresa cliente
+      description: Da de alta una nueva empresa en el directorio fiscal.
+      operationId: createClient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreClientRequest'
+      responses:
+        '201':
+          description: Cliente registrado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cliente registrado exitosamente.
+                  client:
+                    $ref: '#/components/schemas/Client'
+        '422':
+          description: Error de validación (RIF duplicado o formato inválido).
+
+  /v1/clients/{id}:
+    get:
+      tags:
+        - Clientes
+      summary: Ficha técnica detallada de un cliente
+      operationId: getClient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ficha obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client:
+                    $ref: '#/components/schemas/Client'
+        '404':
+          description: Cliente no encontrado.
+
+    put:
+      tags:
+        - Clientes
+      summary: Actualización de datos de un cliente
+      operationId: updateClient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientRequest'
+      responses:
+        '200':
+          description: Cliente actualizado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  client:
+                    $ref: '#/components/schemas/Client'
+
+    delete:
+      tags:
+        - Clientes
+      summary: Eliminación lógica de un cliente
+      operationId: deleteClient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cliente eliminado exitosamente.
+
+  /v1/clients/{id}/toggle-status:
+    patch:
+      tags:
+        - Clientes
+      summary: Alternar estado activo / inactivo de un cliente
+      operationId: toggleClientStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estado actualizado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  client:
+                    $ref: '#/components/schemas/Client'
+
 components:
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -329,3 +505,133 @@ components:
         message:
           type: string
           example: No autenticado.
+
+    Client:
+      type: object
+      required:
+        - id
+        - company_fiscal_name
+        - company_short_name
+        - rif
+        - contact_name
+        - contact_email
+        - is_active
+        - status
+        - status_label
+      properties:
+        id:
+          type: integer
+          example: 1
+        company_fiscal_name:
+          type: string
+          example: Industrias Venezolanas Toro S.A.
+        company_short_name:
+          type: string
+          example: IndVen Toro
+        rif:
+          type: string
+          example: J-12345678-9
+        office_phone:
+          type: string
+          nullable: true
+          example: 0212-555-0100
+        contact_name:
+          type: string
+          example: Carlos Mendoza
+        contact_email:
+          type: string
+          format: email
+          example: cmendoza@indventoro.com.ve
+        contact_phone:
+          type: string
+          nullable: true
+          example: 0414-555-0101
+        is_active:
+          type: boolean
+          example: true
+        status:
+          type: string
+          enum: [active, inactive]
+          example: active
+        status_label:
+          type: string
+          example: Activo
+        user_id:
+          type: integer
+          nullable: true
+        registered_date:
+          type: string
+          format: date
+          example: '2026-09-10'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    StoreClientRequest:
+      type: object
+      required:
+        - company_fiscal_name
+        - company_short_name
+        - rif
+        - contact_name
+        - contact_email
+      properties:
+        company_fiscal_name:
+          type: string
+          example: Industrias Venezolanas Toro S.A.
+        company_short_name:
+          type: string
+          example: IndVen Toro
+        rif:
+          type: string
+          example: J-12345678-9
+        office_phone:
+          type: string
+          nullable: true
+          example: 0212-555-0100
+        contact_name:
+          type: string
+          example: Carlos Mendoza
+        contact_email:
+          type: string
+          format: email
+          example: cmendoza@indventoro.com.ve
+        contact_phone:
+          type: string
+          nullable: true
+          example: 0414-555-0101
+        is_active:
+          type: boolean
+          example: true
+        user_id:
+          type: integer
+          nullable: true
+
+    UpdateClientRequest:
+      type: object
+      properties:
+        company_fiscal_name:
+          type: string
+        company_short_name:
+          type: string
+        rif:
+          type: string
+        office_phone:
+          type: string
+          nullable: true
+        contact_name:
+          type: string
+        contact_email:
+          type: string
+          format: email
+        contact_phone:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        user_id:
+          type: integer
+          nullable: true

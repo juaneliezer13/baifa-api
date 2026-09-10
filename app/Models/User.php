@@ -80,4 +80,13 @@ class User extends Authenticatable
     {
         return $this->role === UserRole::CLIENT;
     }
+
+    /**
+     * Ficha de cliente asociada a este usuario (si aplica).
+     */
+    public function client(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Client::class);
+    }
 }
+

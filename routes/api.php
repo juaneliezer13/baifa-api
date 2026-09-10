@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -48,4 +49,11 @@ Route::prefix('v1/auth')->group(function () {
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('v1')->group(function () {
     Route::apiResource('users', UserController::class);
 });
+
+// Directorio Fiscal y Gestión de Clientes (Personal Interno: Admin, Manager, Empleado)
+Route::middleware(['auth:sanctum', 'role:admin,manager,employee'])->prefix('v1')->group(function () {
+    Route::patch('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus']);
+    Route::apiResource('clients', ClientController::class);
+});
+
 
