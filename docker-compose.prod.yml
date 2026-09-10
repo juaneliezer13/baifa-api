@@ -4,7 +4,7 @@ services:
     container_name: baifa-api
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8000:80"
     env_file:
       - .env
     volumes:
