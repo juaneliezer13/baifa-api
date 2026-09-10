@@ -1,0 +1,21 @@
+services:
+  api:
+    image: ${DOCKER_IMAGE:-baifa-api:latest}
+    container_name: baifa-api
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    volumes:
+      - storage_public:/var/www/storage/app/public
+    networks:
+      - baifa-network
+
+networks:
+  baifa-network:
+    driver: bridge
+
+volumes:
+  storage_public:
+    driver: local
