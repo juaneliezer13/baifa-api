@@ -395,14 +395,34 @@ components:
         - email
         - password
         - password_confirmation
+        - company_fiscal_name
+        - rif
       properties:
         name:
           type: string
+          description: Nombre completo de la persona de contacto.
           example: Juan Chirinos
         email:
           type: string
           format: email
+          description: Correo corporativo de contacto y credencial de acceso.
           example: juan@example.com
+        company_fiscal_name:
+          type: string
+          description: Razón social oficial de la empresa cliente.
+          example: Inversiones Alpha C.A.
+        company_short_name:
+          type: string
+          description: Nombre comercial o corto de la empresa (opcional).
+          example: Alpha
+        rif:
+          type: string
+          description: Registro de Información Fiscal (formato venezolano obligatorio J-12345678-9).
+          example: J-12345678-9
+        phone:
+          type: string
+          description: Teléfono de contacto u oficina (opcional).
+          example: "+58 212 555-0123"
         password:
           type: string
           format: password

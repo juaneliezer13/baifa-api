@@ -8,9 +8,11 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Resources\ClientResource;
 use App\Http\Resources\UserResource;
 use App\Mail\ResetPasswordMail;
 use App\Mail\WelcomeClientMail;
+use App\Models\Client;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -25,38 +27,57 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Registro de nuevo usuario.
+     * Registro de nuevo usuario y empresa cliente.
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        $role = isset($validated['role'])
-            ? UserRole::from($validated['role'])
-            : UserRole::CLIENT;
+        $role = UserRole::CLIENT;
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $role,
-        ]);
+        return DB::transaction(function () use ($validated, $role) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $role,
+                'is_active' => true,
+            ]);
 
-        // Enviar correo simple de bienvenida notificando registro de cliente
-        try {
-            Mail::to($user->email)->send(new WelcomeClientMail($user->name, $user->email));
-        } catch (\Throwable $e) {
-            Log::error('Error al enviar correo de bienvenida: ' . $e->getMessage());
-        }
+            $companyFiscalName = $validated['company_fiscal_name'];
+            $companyShortName = ! empty($validated['company_short_name'])
+                ? $validated['company_short_name']
+                : Str::limit($companyFiscalName, 100, '');
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            $client = Client::create([
+                'company_fiscal_name' => $companyFiscalName,
+                'company_short_name' => $companyShortName,
+                'rif' => strtoupper(trim($validated['rif'])),
+                'office_phone' => $validated['phone'] ?? null,
+                'contact_name' => $user->name,
+                'contact_email' => $user->email,
+                'contact_phone' => $validated['phone'] ?? null,
+                'is_active' => true,
+                'user_id' => $user->id,
+            ]);
 
-        return response()->json([
-            'message' => 'Usuario registrado exitosamente.',
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => new UserResource($user),
-        ], 201);
+            // Enviar correo simple de bienvenida notificando registro de cliente
+            try {
+                Mail::to($user->email)->send(new WelcomeClientMail($user->name, $user->email));
+            } catch (\Throwable $e) {
+                Log::error('Error al enviar correo de bienvenida: ' . $e->getMessage());
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Usuario y empresa cliente registrados exitosamente.',
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => new UserResource($user),
+                'client' => new ClientResource($client),
+            ], 201);
+        });
     }
 
     /**
