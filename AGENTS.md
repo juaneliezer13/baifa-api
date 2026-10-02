@@ -4,6 +4,27 @@ Este repositorio contiene la API RESTful **baifa-api** para el sistema logístic
 
 ---
 
+## 🏭 0. Contexto de Negocio del Proyecto (BaiFa Power Tracking)
+
+* **Propósito:** Plataforma web de rastreo logístico y gestión técnica de generadores eléctricos industriales (BaiFa Power).
+* **Roles de Usuario (RBAC):**
+  - **`admin` (Superadministrador):** Control total, auditoría, gestión de usuarios internos y directorio fiscal de clientes.
+  - **`manager` (Jefe / Gerente):** Supervisión operativa, métricas globales, seguimiento de inventario y aprobaciones.
+  - **`employee` (Operador):** Registro de inspecciones y puntos de control de generadores en campo (sin gestión de usuarios).
+  - **`client` (Cliente Empresarial):** Portal exclusivo de autogestión para seguimiento de sus pedidos y equipos comprados/alquilados.
+* **Hoja de Ruta (5 Etapas):**
+  - **Etapa 1 (Accesos y Gestión de Identidades):** ✅ **Completada (100%)** — Auth Sanctum, Roles, Registro atómico con RIF y Razón Social, Módulo de Usuarios y Directorio de Clientes.
+  - **Etapa 2 (Catálogo e Inventario de Generadores):** ⏳ **Siguiente Hito** — Fichas técnicas (kVA, motor diésel, modelos abiertos/insonorizados), seriales únicos e imágenes.
+  - **Etapa 3 (Tracking Logístico y Checkpoints):** 📋 **Planificado** — Pipeline de estados y trazabilidad en tiempo real.
+  - **Etapa 4 (Dashboard de Autogestión de Clientes):** 📋 **Planificado** — Portal personalizado de clientes y repuestos.
+  - **Etapa 5 (Reportes Operativos y Auditoría):** 📋 **Planificado** — Métricas e historial de auditoría inmutable.
+* **Documentación Centralizada del Proyecto:**
+  - Repositorio global de documentación: `../baifa-docs/`
+  - Reglas de negocio del backend: `../baifa-docs/business/business_rules_backend.md`
+  - Especificación de diseño Figma: `../baifa-docs/business/diseno_figma.md`
+
+---
+
 ## 🚫 1. Reglas Operativas Estrictas (Ejecución Manual)
 
 1. **NO ejecutar tests automáticamente:**
@@ -90,5 +111,5 @@ Log::error("[MODULO_TIPO] Mensaje explicativo en español", [
 1. **OpenAPI (`docs/openapi.yaml`):**
    * Cada endpoint debe documentarse en [`docs/openapi.yaml`](docs/openapi.yaml) antes de dar por completada la tarea.
    * **Todo el texto debe estar en español:** títulos, descripciones, nombres de parámetros, ejemplos y respuestas.
-2. **Libro de Reglas de Negocio (`docs/business_rules.md`):**
-   * Toda nueva condición o flujo indicado por el cliente debe registrarse con su código `RN-[MODULO]-[NUMERO]`.
+2. **Libro de Reglas de Negocio (`../baifa-docs/business/business_rules_backend.md`):**
+   * Toda nueva condición o flujo indicado por el cliente debe registrarse en el libro central de reglas con su código `RN-[MODULO]-[NUMERO]`.

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientController;
+use App\Http\Controllers\Api\V1\GeneratorController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,21 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('v1')->group(function 
 Route::middleware(['auth:sanctum', 'role:admin,manager,employee'])->prefix('v1')->group(function () {
     Route::patch('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus']);
     Route::apiResource('clients', ClientController::class);
+});
+
+// Catálogo e Inventario de Generadores Eléctricos (Etapa 2)
+Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    // Métricas y consulta (disponible para todo usuario autenticado según su rol)
+    Route::get('generators/summary', [GeneratorController::class, 'summary']);
+    Route::get('generators', [GeneratorController::class, 'index']);
+    Route::get('generators/{generator}', [GeneratorController::class, 'show']);
+
+    // Operaciones de gestión/creación/edición (Personal Interno: Admin, Manager, Empleado)
+    Route::middleware('role:admin,manager,employee')->group(function () {
+        Route::post('generators', [GeneratorController::class, 'store']);
+        Route::match(['put', 'patch', 'post'], 'generators/{generator}', [GeneratorController::class, 'update']);
+        Route::delete('generators/{generator}', [GeneratorController::class, 'destroy']);
+    });
 });
 
 

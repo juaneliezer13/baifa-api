@@ -86,5 +86,8 @@ class DatabaseSeeder extends Seeder
 
         // 6. Sembrar directorio de clientes base de Figma
         $this->call(ClientSeeder::class);
+
+        // 7. Sembrar catálogo e inventario de generadores (Etapa 2)
+        $this->call(GeneratorSeeder::class);
     }
 }

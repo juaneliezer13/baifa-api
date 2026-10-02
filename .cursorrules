@@ -1,4 +1,9 @@
-# Cursor Rules for baifa-api
+# Cursor Rules for baifa-api (BaiFa Power Tracking Backend)
+
+Domain Context:
+- Platform: Generator tracking & logistics (BaiFa Power).
+- Roles: admin (full control), manager (operations), employee (operator), client (customer portal).
+- Documentation: Centralized in `../baifa-docs/`. Business rules in `../baifa-docs/business/business_rules_backend.md`.
 
 Operational Rules:
 - NO automatic tests. NO automatic Pint. Run only upon manual request.
@@ -8,4 +13,4 @@ Clean Code Guidelines:
 - Thin controllers: Form Requests for validation, API Resources for JSON responses. Avoid over-engineering.
 - Private endpoints: require `auth:sanctum` and roles where applicable. Public: only /login, /register, /health.
 - Logging: Categorized in Spanish (`[CLIENTES_INFO]`, `[CLIENTES_ERROR]`) for Docker monitoring.
-- Documentation: Always document in Spanish in `docs/openapi.yaml` and record client rules in `docs/business_rules.md`.
+- Documentation: Always document in Spanish in `docs/openapi.yaml` and record client rules in `../baifa-docs/business/business_rules_backend.md`.
