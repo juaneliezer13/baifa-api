@@ -22,6 +22,10 @@ tags:
     description: Endpoints de diagnóstico, métricas y estado del sistema.
   - name: Clientes
     description: Directorio fiscal de empresas clientes, ficha jurídica y personas de contacto.
+  - name: Generadores
+    description: Catálogo de inventario, equipos asignados, métricas y control de estados (Etapa 2).
+  - name: Tracking / Checkpoints
+    description: Consulta rápida de trazabilidad por serial y registro manual de puntos de control inmutables (Etapas 3 y 4).
 
 paths:
   /v1/health:
@@ -327,11 +331,299 @@ paths:
             application/json:
               schema:
                 type: object
+  /v1/generators/summary:
+    get:
+      tags:
+        - Generadores
+      summary: Resumen numérico y métricas de generadores por estado
+      description: Retorna contadores agregados por cada uno de los 5 estados operativos.
+      operationId: getGeneratorsSummary
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Métricas calculadas exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratorSummaryResponse'
+
+  /v1/generators:
+    get:
+      tags:
+        - Generadores
+      summary: Listado de generadores eléctricos del catálogo
+      description: Retorna los equipos registrados con filtros opcionales por búsqueda textual, estado y cliente.
+      operationId: getGenerators
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Término de búsqueda por serial, modelo o cliente.
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: Filtro por estado operativo.
+          schema:
+            $ref: '#/components/schemas/GeneratorStatus'
+        - name: client_id
+          in: query
+          required: false
+          description: Filtro por ID de cliente asociado.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Listado de generadores obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Generator'
+
+    post:
+      tags:
+        - Generadores
+      summary: Registrar nuevo generador eléctrico en inventario
+      description: Da de alta un nuevo equipo capturando serial, modelo, cliente, ETA y fotografía referencial.
+      operationId: storeGenerator
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoreGeneratorRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreGeneratorRequest'
+      responses:
+        '201':
+          description: Generador registrado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
                 properties:
                   message:
                     type: string
-                  client:
-                    $ref: '#/components/schemas/Client'
+                  generator:
+                    $ref: '#/components/schemas/Generator'
+        '422':
+          description: Error de validación (serial duplicado, campos faltantes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /v1/generators/{id}:
+    get:
+      tags:
+        - Generadores
+      summary: Ficha técnica detallada de un generador
+      operationId: getGeneratorById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ficha del generador obtenida con éxito.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  generator:
+                    $ref: '#/components/schemas/Generator'
+
+    put:
+      tags:
+        - Generadores
+      summary: Actualizar datos técnicos o estado de un generador
+      operationId: updateGenerator
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateGeneratorRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGeneratorRequest'
+      responses:
+        '200':
+          description: Generador actualizado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  generator:
+                    $ref: '#/components/schemas/Generator'
+
+    delete:
+      tags:
+        - Generadores
+      summary: Eliminar lógicamente un generador del catálogo
+      operationId: deleteGenerator
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Generador eliminado con éxito.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /v1/tracking/{serial_number}:
+    get:
+      tags:
+        - Tracking / Checkpoints
+      summary: Consulta de trazabilidad de un generador por serial
+      description: >
+        Obtiene la ficha de un generador y su historial cronológico de puntos de control
+        a partir de su serial de fábrica. Permite a clientes consultar exclusivamente sus
+        propios generadores (RN-PRT-02, RN-TRK-01).
+      operationId: trackBySerial
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serial_number
+          in: path
+          required: true
+          description: Serial de fábrica único del equipo (ej. GEN-2026-0041).
+          schema:
+            type: string
+            example: GEN-2026-0041
+      responses:
+        '200':
+          description: Información del generador y bitácora de trazabilidad.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  generator:
+                    $ref: '#/components/schemas/Generator'
+        '403':
+          description: Usuario con rol cliente no autorizado a consultar este equipo.
+        '404':
+          description: Generador no encontrado con el serial suministrado.
+
+  /v1/generators/{generator}/checkpoints:
+    get:
+      tags:
+        - Tracking / Checkpoints
+      summary: Listado cronológico de puntos de control de un generador
+      description: >
+        Devuelve la lista completa y ordenada cronológicamente de puntos de control
+        alcanzados por el generador (RN-BIT-01).
+      operationId: getCheckpoints
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: generator
+          in: path
+          required: true
+          description: ID numérico del generador.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Lista de checkpoints del generador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Checkpoint'
+        '403':
+          description: Acceso no autorizado para el cliente.
+        '404':
+          description: Generador no encontrado.
+
+    post:
+      tags:
+        - Tracking / Checkpoints
+      summary: Registro manual de nuevo punto de control (avance de ruta)
+      description: >
+        Registra un evento inmutable en la bitácora del generador y actualiza
+        automáticamente su estado logístico principal (RN-TRK-01, RN-TRK-02).
+        Requiere rol admin, manager o employee.
+      operationId: storeCheckpoint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: generator
+          in: path
+          required: true
+          description: ID numérico del generador.
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreCheckpointRequest'
+      responses:
+        '201':
+          description: Punto de control registrado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Punto de control registrado exitosamente.
+                  checkpoint:
+                    $ref: '#/components/schemas/Checkpoint'
+                  generator:
+                    $ref: '#/components/schemas/Generator'
+        '403':
+          description: Rol no autorizado para registrar puntos de control.
+        '422':
+          description: Error de validación en los datos del punto de control.
 
 components:
 
@@ -663,3 +955,261 @@ components:
         user_id:
           type: integer
           nullable: true
+
+    GeneratorStatus:
+      type: string
+      enum:
+        - warehouse
+        - in_transit
+        - checkpoint
+        - delivered
+        - installed
+      description: |
+        Estado del ciclo logístico del generador:
+        * `warehouse`: En Almacén.
+        * `in_transit`: En Tránsito hacia destino.
+        * `checkpoint`: En Punto de Control / Alcabala.
+        * `delivered`: Entregado en locación del cliente.
+        * `installed`: Instalado y Operativo.
+      example: warehouse
+
+    Generator:
+      type: object
+      required:
+        - id
+        - serial_number
+        - model
+        - status
+        - status_label
+        - status_color
+      properties:
+        id:
+          type: integer
+          example: 1
+        serial_number:
+          type: string
+          example: GEN-2026-0041
+        name:
+          type: string
+          nullable: true
+          example: Planta Auxiliar
+        model:
+          type: string
+          example: Cummins 150 kVA Silent Diésel
+        capacity_kva:
+          type: number
+          nullable: true
+          example: 150.0
+        status:
+          $ref: '#/components/schemas/GeneratorStatus'
+        status_label:
+          type: string
+          example: En Almacén
+        status_color:
+          type: string
+          example: violet
+        client_id:
+          type: integer
+          nullable: true
+          example: 2
+        client:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            company_fiscal_name:
+              type: string
+            company_short_name:
+              type: string
+            rif:
+              type: string
+        estimated_arrival_date:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-10-05'
+        photo_path:
+          type: string
+          nullable: true
+        photo_url:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        checkpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Checkpoint'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GeneratorSummaryResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 5
+        warehouse:
+          type: integer
+          example: 1
+        in_transit:
+          type: integer
+          example: 2
+        checkpoint:
+          type: integer
+          example: 1
+        delivered:
+          type: integer
+          example: 1
+        installed:
+          type: integer
+          example: 0
+
+    StoreGeneratorRequest:
+      type: object
+      required:
+        - serial_number
+        - model
+      properties:
+        serial_number:
+          type: string
+          example: GEN-2026-0041
+        model:
+          type: string
+          example: Cummins 150 kVA Silent Diésel
+        name:
+          type: string
+          nullable: true
+        capacity_kva:
+          type: number
+          nullable: true
+          example: 150
+        status:
+          $ref: '#/components/schemas/GeneratorStatus'
+        client_id:
+          type: integer
+          nullable: true
+          example: 1
+        estimated_arrival_date:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-10-01'
+        photo:
+          type: string
+          format: binary
+          description: Archivo de imagen (JPEG, PNG, WebP)
+        notes:
+          type: string
+          nullable: true
+
+    UpdateGeneratorRequest:
+      type: object
+      properties:
+        serial_number:
+          type: string
+        model:
+          type: string
+        name:
+          type: string
+          nullable: true
+        capacity_kva:
+          type: number
+          nullable: true
+        status:
+          $ref: '#/components/schemas/GeneratorStatus'
+        client_id:
+          type: integer
+          nullable: true
+        estimated_arrival_date:
+          type: string
+          format: date
+          nullable: true
+        photo:
+          type: string
+          format: binary
+        notes:
+          type: string
+          nullable: true
+
+    Checkpoint:
+      type: object
+      required:
+        - id
+        - generator_id
+        - status
+        - status_label
+        - status_color
+        - checkpoint_name
+        - changed_by
+      properties:
+        id:
+          type: integer
+          example: 1
+        generator_id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/GeneratorStatus'
+        status_label:
+          type: string
+          example: En Tránsito
+        status_color:
+          type: string
+          example: sky
+        checkpoint_name:
+          type: string
+          example: Alcabala Guacara
+        event_date:
+          type: string
+          example: '2026-08-30 07:30'
+        event_date_iso:
+          type: string
+          format: date-time
+          example: '2026-08-30T07:30:00Z'
+        notes:
+          type: string
+          nullable: true
+          example: 'Generador despachado desde warehouse Caracas. Transportista: Express Cargo VE.'
+        user_id:
+          type: integer
+          nullable: true
+          example: 2
+        changed_by:
+          type: string
+          example: Adriana Morales
+        changed_by_role:
+          type: string
+          example: Administrador
+        created_at:
+          type: string
+          format: date-time
+
+    StoreCheckpointRequest:
+      type: object
+      required:
+        - status
+        - checkpoint_name
+      properties:
+        status:
+          $ref: '#/components/schemas/GeneratorStatus'
+        checkpoint_name:
+          type: string
+          maxLength: 150
+          example: Punto de Control Valencia
+        event_date:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-08-30 07:30:00'
+        notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+          example: 'Revisión completada sin novedades.'
