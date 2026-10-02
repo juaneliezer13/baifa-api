@@ -43,6 +43,7 @@ class GeneratorResource extends JsonResource
             'photo_path' => $this->photo_path,
             'photo_url' => $this->photo_url,
             'notes' => $this->notes,
+            'checkpoints' => CheckpointResource::collection($this->whenLoaded('checkpoints')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -72,6 +74,22 @@ class Generator extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    /**
+     * Historial cronológico de puntos de control (checkpoints) y trazabilidad.
+     */
+    public function checkpoints(): HasMany
+    {
+        return $this->hasMany(Checkpoint::class)->orderBy('event_date', 'asc')->orderBy('id', 'asc');
+    }
+
+    /**
+     * Último punto de control registrado para el generador.
+     */
+    public function latestCheckpoint(): HasOne
+    {
+        return $this->hasOne(Checkpoint::class)->latestOfMany('event_date');
     }
 
     /**

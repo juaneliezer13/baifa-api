@@ -89,5 +89,8 @@ class DatabaseSeeder extends Seeder
 
         // 7. Sembrar catálogo e inventario de generadores (Etapa 2)
         $this->call(GeneratorSeeder::class);
+
+        // 8. Sembrar historial de puntos de control y trazabilidad (Etapas 3 y 4)
+        $this->call(CheckpointSeeder::class);
     }
 }

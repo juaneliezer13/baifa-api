@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CheckpointController;
 use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\GeneratorController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -69,6 +70,20 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
         Route::post('generators', [GeneratorController::class, 'store']);
         Route::match(['put', 'patch', 'post'], 'generators/{generator}', [GeneratorController::class, 'update']);
         Route::delete('generators/{generator}', [GeneratorController::class, 'destroy']);
+    });
+});
+
+// Puntos de Control y Trazabilidad Logística (Etapas 3 y 4)
+Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    // Consulta rápida de trazabilidad por número de serial
+    Route::get('tracking/{serial_number}', [CheckpointController::class, 'trackBySerial']);
+
+    // Listado cronológico de puntos de control de un generador
+    Route::get('generators/{generator}/checkpoints', [CheckpointController::class, 'index']);
+
+    // Registro manual de nuevo punto de control (Personal Interno: Admin, Manager, Empleado)
+    Route::middleware('role:admin,manager,employee')->group(function () {
+        Route::post('generators/{generator}/checkpoints', [CheckpointController::class, 'store']);
     });
 });
 
