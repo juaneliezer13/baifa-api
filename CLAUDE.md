@@ -9,9 +9,9 @@
 1. NEVER run tests (`php artisan test`) automatically. Run only when explicitly requested.
 2. NEVER run linter (`./vendor/bin/pint`) automatically. Run only when explicitly requested.
 3. All commands run inside Docker: `docker compose exec app <command>`.
-4. Semantic Versioning & Release Branches (Norma Técnica):
+4. Semantic Versioning & Release (Norma Técnica):
    - Escalar en versionado semántico (SemVer: MAJOR.MINOR.PATCH) en cada entrega o hito completado.
-   - Creación de ramas de release con formato `release/vX.Y.Z` (ej. `release/v1.0.3`) a partir de `develop`.
+   - Estándar obligatorio para Docker tags y ramas/tags de release: `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.3` y rama `release-1.0.3`).
    - Sincronizar versión en `docs/openapi.yaml`.
 
 ## Clean Code & Architecture Rules

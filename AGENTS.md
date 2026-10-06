@@ -123,8 +123,9 @@ Para mantener una trazabilidad rigurosa y ordenada de cada hito, entrega o conju
    * **MAJOR (`X.0.0`):** Cambios que rompen compatibilidad o saltos estructurales de etapa mayor.
    * **MINOR (`1.X.0`):** Incorporación de nuevos módulos, modelos o endpoints funcionales completos.
    * **PATCH (`1.0.X`):** Mejoras de código, correcciones de errores, nuevas notificaciones o configuraciones complementarias.
-2. **Convención de Ramas de Release:**
-   * Las ramas de despliegue/entrega se originan a partir de `develop` bajo el formato: `release/vX.Y.Z` (ej. `release/v1.0.3`).
+2. **Convención de Ramas y Tags de Release (Docker y Git):**
+   * El estándar oficial de nomenclatura para imágenes de Docker y ramas/tags de release es: `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.3` y rama `release-1.0.3`).
+   * No utilizar prefijos sueltos (`1.0.3` o `v1.0.3`) para los tags de despliegue en Docker Hub.
    * Cada nueva entrega funcional completada debe escalar su versión semántica correspondiente.
 3. **Sincronización:**
    * La versión debe actualizarse en el campo `info.version` del archivo `docs/openapi.yaml`.
