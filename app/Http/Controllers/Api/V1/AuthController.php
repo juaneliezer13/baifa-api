@@ -63,9 +63,14 @@ class AuthController extends Controller
 
             // Enviar correo simple de bienvenida notificando registro de cliente
             try {
-                Mail::to($user->email)->send(new WelcomeClientMail($user->name, $user->email));
+                Mail::to($user->email)->send(new WelcomeClientMail(
+                    userName: $user->name,
+                    userEmail: $user->email,
+                    companyName: $companyFiscalName,
+                    rif: strtoupper(trim($validated['rif'])),
+                ));
             } catch (\Throwable $e) {
-                Log::error('Error al enviar correo de bienvenida: ' . $e->getMessage());
+                Log::error('[AUTH_ERROR] Error al enviar correo de bienvenida al cliente: ' . $e->getMessage());
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;

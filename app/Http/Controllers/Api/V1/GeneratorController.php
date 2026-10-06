@@ -8,12 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Generator\StoreGeneratorRequest;
 use App\Http\Requests\Generator\UpdateGeneratorRequest;
 use App\Http\Resources\GeneratorResource;
+use App\Mail\GeneratorUpdatedMail;
 use App\Models\Generator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class GeneratorController extends Controller
@@ -158,13 +160,86 @@ class GeneratorController extends Controller
 
         unset($validated['photo']);
 
+        $oldStatus = $generator->getOriginal('status');
+        $oldStatusEnum = $oldStatus instanceof GeneratorStatus ? $oldStatus : GeneratorStatus::tryFrom((string) $oldStatus);
+        $oldStatusLabel = $oldStatusEnum?->label() ?? (string) $oldStatus;
+
         $generator->update($validated);
+
+        // Detectar cambios realizados para informar al cliente
+        $changes = [];
+        $statusChanged = $generator->wasChanged('status');
+        $newStatusLabel = $generator->status instanceof GeneratorStatus ? $generator->status->label() : (string) $generator->status;
+
+        if ($statusChanged) {
+            $changes['status'] = [
+                'label' => 'Estatus Operativo',
+                'old' => $oldStatusLabel,
+                'new' => $newStatusLabel,
+            ];
+        }
+
+        $attributeLabels = [
+            'name' => 'Nombre del Equipo',
+            'model' => 'Modelo',
+            'capacity_kva' => 'Capacidad (kVA)',
+            'estimated_arrival_date' => 'Fecha Estimada de Llegada (ETA)',
+            'notes' => 'Notas u Observaciones',
+            'client_id' => 'Asignación de Cliente',
+        ];
+
+        foreach ($attributeLabels as $attr => $label) {
+            if ($generator->wasChanged($attr)) {
+                $oldVal = $generator->getOriginal($attr);
+                $newVal = $generator->$attr;
+
+                if ($attr === 'estimated_arrival_date') {
+                    $oldVal = $oldVal ? \Carbon\Carbon::parse($oldVal)->format('d/m/Y') : 'No asignada';
+                    $newVal = $newVal ? \Carbon\Carbon::parse($newVal)->format('d/m/Y') : 'No asignada';
+                }
+
+                $changes[$attr] = [
+                    'label' => $label,
+                    'old' => (string) ($oldVal ?? 'Ninguno'),
+                    'new' => (string) ($newVal ?? 'Ninguno'),
+                ];
+            }
+        }
 
         Log::info('[GENERADORES_INFO] Generador actualizado', [
             'id' => $generator->id,
             'serial' => $generator->serial_number,
             'updated_by' => $request->user()?->id,
+            'changes' => array_keys($changes),
         ]);
+
+        // Si el generador tiene un cliente asignado y hubo cambios, enviar notificación por correo
+        $client = $generator->client;
+        if ($client && ! empty($changes)) {
+            $recipientEmail = $client->contact_email ?? $client->user?->email;
+            if ($recipientEmail) {
+                try {
+                    $mail = Mail::to($recipientEmail);
+                    if ($client->user && $client->user->email && $client->user->email !== $recipientEmail) {
+                        $mail->cc($client->user->email);
+                    }
+                    $mail->send(new GeneratorUpdatedMail(
+                        generator: $generator,
+                        client: $client,
+                        changedFields: $changes,
+                        statusChanged: $statusChanged,
+                        oldStatusLabel: $oldStatusLabel,
+                        newStatusLabel: $newStatusLabel,
+                    ));
+                } catch (\Throwable $e) {
+                    Log::error('[GENERADORES_ERROR] Error al enviar notificación de actualización de generador: ' . $e->getMessage(), [
+                        'generator_id' => $generator->id,
+                        'client_id' => $client->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Ficha del generador actualizada exitosamente.',

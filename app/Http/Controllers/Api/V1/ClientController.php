@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
-use App\Mail\WelcomeUserCreatedMail;
+use App\Mail\WelcomeClientMail;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -79,16 +79,17 @@ class ClientController extends Controller
             return $client;
         });
 
-        // 3. Enviar correo de notificación con credenciales de acceso iniciales
+        // 3. Enviar correo de notificación con credenciales de acceso iniciales y bienvenida
         try {
-            Mail::to($client->contact_email)->send(new WelcomeUserCreatedMail(
+            Mail::to($client->contact_email)->send(new WelcomeClientMail(
                 userName: $client->contact_name,
                 userEmail: $client->contact_email,
-                roleName: 'Cliente',
+                companyName: $client->company_fiscal_name,
+                rif: $client->rif,
                 initialPassword: '12345678'
             ));
         } catch (\Throwable $e) {
-            Log::error('Error al enviar correo de bienvenida al cliente: ' . $e->getMessage());
+            Log::error('[CLIENTES_ERROR] Error al enviar correo de bienvenida al cliente: ' . $e->getMessage());
         }
 
         return response()->json([

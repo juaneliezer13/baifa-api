@@ -6,7 +6,7 @@ info:
     Desarrollada con Laravel 12 y Docker Compose (Nginx, PHP 8.4-FPM y MySQL 8.0).
     Incluye autenticación mediante Bearer Tokens con **Laravel Sanctum** y control de roles:
     Cliente (`client`), Empleado (`employee`), Jefe/Gerente (`manager`) y Administrador (`admin`).
-  version: 1.0.0
+  version: 1.0.3
   contact:
     name: Juan Chirinos
     email: juaneliezer13@gmail.com
@@ -56,7 +56,7 @@ paths:
       summary: Registro de nuevo usuario
       description: >
         Crea una nueva cuenta de usuario en el sistema y emite inmediatamente un Bearer Token.
-        Si no se especifica rol, se asigna `client` por defecto.
+        Si no se especifica rol, se asigna `client` por defecto. Despacha correo de bienvenida y registro al cliente (RN-NOTIF-02).
       operationId: registerUser
       requestBody:
         required: true
@@ -454,6 +454,10 @@ paths:
       tags:
         - Generadores
       summary: Actualizar datos técnicos o estado de un generador
+      description: >
+        Actualiza los datos técnicos o estatus de un generador. Si el generador está asignado
+        a un cliente y se detectan cambios o transiciones de estatus, se despacha automáticamente
+        una notificación por correo electrónico al cliente (RN-NOTIF-04).
       operationId: updateGenerator
       security:
         - bearerAuth: []
@@ -587,6 +591,7 @@ paths:
       description: >
         Registra un evento inmutable en la bitácora del generador y actualiza
         automáticamente su estado logístico principal (RN-TRK-01, RN-TRK-02).
+        Si el equipo está asignado a un cliente, despacha automáticamente una notificación por correo electrónico (RN-NOTIF-05).
         Requiere rol admin, manager o employee.
       operationId: storeCheckpoint
       security:

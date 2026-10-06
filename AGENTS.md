@@ -113,3 +113,18 @@ Log::error("[MODULO_TIPO] Mensaje explicativo en español", [
    * **Todo el texto debe estar en español:** títulos, descripciones, nombres de parámetros, ejemplos y respuestas.
 2. **Libro de Reglas de Negocio (`../baifa-docs/business/business_rules_backend.md`):**
    * Toda nueva condición o flujo indicado por el cliente debe registrarse en el libro central de reglas con su código `RN-[MODULO]-[NUMERO]`.
+
+---
+
+## 🏷️ 7. Versionado Semántico y Ramas de Release (Norma Técnica)
+
+Para mantener una trazabilidad rigurosa y ordenada de cada hito, entrega o conjunto de cambios funcionales a nivel de Git y GitHub:
+1. **Escalamiento Semántico (SemVer):**
+   * **MAJOR (`X.0.0`):** Cambios que rompen compatibilidad o saltos estructurales de etapa mayor.
+   * **MINOR (`1.X.0`):** Incorporación de nuevos módulos, modelos o endpoints funcionales completos.
+   * **PATCH (`1.0.X`):** Mejoras de código, correcciones de errores, nuevas notificaciones o configuraciones complementarias.
+2. **Convención de Ramas de Release:**
+   * Las ramas de despliegue/entrega se originan a partir de `develop` bajo el formato: `release/vX.Y.Z` (ej. `release/v1.0.3`).
+   * Cada nueva entrega funcional completada debe escalar su versión semántica correspondiente.
+3. **Sincronización:**
+   * La versión debe actualizarse en el campo `info.version` del archivo `docs/openapi.yaml`.

@@ -7,12 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkpoint\StoreCheckpointRequest;
 use App\Http\Resources\CheckpointResource;
 use App\Http\Resources\GeneratorResource;
+use App\Mail\GeneratorCheckpointMail;
 use App\Models\Generator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CheckpointController extends Controller
 {
@@ -71,6 +73,32 @@ class CheckpointController extends Controller
                 'checkpoint_name' => $validated['checkpoint_name'],
                 'user_id' => $request->user()?->id,
             ]);
+
+            // Notificar por correo al cliente asignado sobre el avance / cambio del punto de control
+            $client = $generator->client;
+            if ($client) {
+                $recipientEmail = $client->contact_email ?? $client->user?->email;
+                if ($recipientEmail) {
+                    try {
+                        $mail = Mail::to($recipientEmail);
+                        if ($client->user && $client->user->email && $client->user->email !== $recipientEmail) {
+                            $mail->cc($client->user->email);
+                        }
+                        $mail->send(new GeneratorCheckpointMail(
+                            generator: $generator,
+                            checkpoint: $checkpoint,
+                            client: $client,
+                        ));
+                    } catch (\Throwable $e) {
+                        Log::error("[TRACKING_ERROR] Error al enviar notificación de punto de control por correo: " . $e->getMessage(), [
+                            'generator_id' => $generator->id,
+                            'checkpoint_id' => $checkpoint->id,
+                            'client_id' => $client->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
 
             return response()->json([
                 'message' => 'Punto de control registrado exitosamente.',

@@ -67,15 +67,9 @@ class UserController extends Controller
 
         // Enviar correo de notificación al nuevo usuario con su contraseña inicial
         try {
-            $roleValue = $user->role->value ?? (string) $user->role;
-            $roleLabel = match ($roleValue) {
-                'admin' => 'Administrador',
-                'operator' => 'Operador',
-                'auditor' => 'Auditor',
-                'client' => 'Cliente',
-                'employee' => 'Empleado',
-                default => ucfirst($roleValue),
-            };
+            $roleLabel = $user->role instanceof \App\Enums\UserRole 
+                ? $user->role->label() 
+                : ucfirst((string) ($user->role->value ?? $user->role));
 
             Mail::to($user->email)->send(new WelcomeUserCreatedMail(
                 userName: $user->name,
@@ -84,7 +78,7 @@ class UserController extends Controller
                 initialPassword: $validated['password']
             ));
         } catch (\Throwable $e) {
-            Log::error('Error al enviar correo de bienvenida de usuario creado: ' . $e->getMessage());
+            Log::error('[USUARIOS_ERROR] Error al enviar correo de bienvenida de usuario creado: ' . $e->getMessage());
         }
 
         return response()->json([
