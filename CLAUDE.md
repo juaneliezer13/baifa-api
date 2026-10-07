@@ -11,7 +11,8 @@
 3. All commands run inside Docker: `docker compose exec app <command>`.
 4. Semantic Versioning & Release (Norma Técnica):
    - Escalar en versionado semántico (SemVer: MAJOR.MINOR.PATCH) en cada entrega o hito completado.
-   - Estándar obligatorio para Docker tags y ramas/tags de release: `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.3` y rama `release-1.0.3`).
+   - Docker releases/tags: estándar `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.1.1` o `release-1.0.3`).
+   - GitHub branches y tags: estándar `release/vX.Y.Z` (ej. rama `release/v1.1.1` y tag `release/v1.1.1`, o `release/v1.0.3`).
    - Sincronizar versión en `docs/openapi.yaml`.
 
 ## Clean Code & Architecture Rules
