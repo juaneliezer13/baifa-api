@@ -59,6 +59,14 @@ class Client extends Model
     }
 
     /**
+     * Tickets de soporte asociados a esta empresa cliente.
+     */
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    /**
      * Scope para filtrar únicamente clientes activos.
      */
     public function scopeActive(Builder $query): Builder

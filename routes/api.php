@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CheckpointController;
 use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\GeneratorController;
+use App\Http\Controllers\Api\V1\SupportTicketController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -86,5 +87,27 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
         Route::post('generators/{generator}/checkpoints', [CheckpointController::class, 'store']);
     });
 });
+
+// Soporte Técnico y Helpdesk (Módulo de Tickets y Chat)
+Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    // 1. Operaciones del Cliente
+    Route::post('support/tickets', [SupportTicketController::class, 'store']);
+    Route::get('support/active-ticket', [SupportTicketController::class, 'activeTicket']);
+    Route::get('support/my-tickets', [SupportTicketController::class, 'myTickets']);
+
+    // 2. Operaciones de Tickera / Helpdesk (Personal Interno: Admin, Manager, Empleado)
+    Route::middleware('role:admin,manager,employee')->group(function () {
+        Route::get('support/tickets', [SupportTicketController::class, 'index']);
+        Route::patch('support/tickets/{ticket}/assign', [SupportTicketController::class, 'assign']);
+        Route::patch('support/tickets/{ticket}/status', [SupportTicketController::class, 'updateStatus']);
+    });
+
+    // 3. Operaciones de visualización, chat y bitácora (Cliente sobre su ticket, o Personal Interno)
+    Route::get('support/tickets/{ticket}', [SupportTicketController::class, 'show']);
+    Route::get('support/tickets/{ticket}/messages', [SupportTicketController::class, 'getMessages']);
+    Route::post('support/tickets/{ticket}/messages', [SupportTicketController::class, 'sendMessage']);
+    Route::get('support/tickets/{ticket}/logs', [SupportTicketController::class, 'getLogs']);
+});
+
 
 

@@ -26,6 +26,8 @@ tags:
     description: Catálogo de inventario, equipos asignados, métricas y control de estados (Etapa 2).
   - name: Tracking / Checkpoints
     description: Consulta rápida de trazabilidad por serial y registro manual de puntos de control inmutables (Etapas 3 y 4).
+  - name: Soporte / Helpdesk
+    description: Creación de tickets de soporte, gestión de tickera interna, asignación de operadores, chat en vivo y bitácora de evolución.
 
 paths:
   /v1/health:
@@ -630,6 +632,248 @@ paths:
         '422':
           description: Error de validación en los datos del punto de control.
 
+  /v1/support/tickets:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Listado general de tickets en la Tickera (Personal Interno)
+      description: Permite a administradores, gerentes y empleados consultar todos los tickets de soporte con filtros avanzados.
+      operationId: getSupportTickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, finished, cancelled]
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: assigned_to
+          in: query
+          description: me, unassigned o ID de usuario operador
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        '200':
+          description: Listado paginado de tickets de soporte.
+        '403':
+          description: Rol no autorizado (solo personal interno).
+    post:
+      tags:
+        - Soporte / Helpdesk
+      summary: Generar nuevo ticket de soporte (Cliente)
+      description: Permite al cliente abrir una consulta. Genera código TKT-YYYY-XXXX y estado inicial pending.
+      operationId: createSupportTicket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+      responses:
+        '201':
+          description: Ticket generado exitosamente.
+        '422':
+          description: Error de validación (título obligatorio).
+
+  /v1/support/active-ticket:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Consultar ticket activo del cliente
+      description: Obtiene el ticket en curso (pending o in_progress) para desplegar el chat flotante. Si no tiene, retorna data null.
+      operationId: getActiveSupportTicket
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estado del ticket activo del cliente.
+
+  /v1/support/my-tickets:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Mis Consultas (Historial del Cliente)
+      description: Permite al cliente listar todas sus consultas históricas categorizadas por área y estatus.
+      operationId: getMySupportTickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Listado paginado de consultas del cliente.
+
+  /v1/support/tickets/{id}:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Detalle completo de un ticket
+      description: Obtiene información del ticket, operador asignado, mensajes de chat y bitácora de evolución.
+      operationId: getSupportTicketDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del ticket.
+        '403':
+          description: No autorizado para ver este ticket.
+        '404':
+          description: Ticket no encontrado.
+
+  /v1/support/tickets/{id}/assign:
+    patch:
+      tags:
+        - Soporte / Helpdesk
+      summary: Asignar u autoasignarse ticket de la tickera
+      description: Admin asigna a un empleado o un empleado/admin "toma el ticket". Cambia estatus a in_progress.
+      operationId: assignSupportTicket
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignTicketRequest'
+      responses:
+        '200':
+          description: Ticket asignado exitosamente.
+        '403':
+          description: Rol no autorizado.
+
+  /v1/support/tickets/{id}/status:
+    patch:
+      tags:
+        - Soporte / Helpdesk
+      summary: Actualizar estatus del ticket (Finalizar o Cancelar)
+      description: Permite a admin/empleado cambiar estado. Si es finished o cancelled requiere final_comment obligatorio. Notifica por correo a cliente y empleado.
+      operationId: updateSupportTicketStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTicketStatusRequest'
+      responses:
+        '200':
+          description: Estatus actualizado y notificaciones enviadas.
+        '403':
+          description: El cliente no puede cambiar estados ni cancelar tickets.
+        '422':
+          description: Comentario final obligatorio si es finalizado o cancelado.
+
+  /v1/support/tickets/{id}/messages:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Listar mensajes del chat de un ticket
+      operationId: getTicketMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Historial de mensajes de chat.
+    post:
+      tags:
+        - Soporte / Helpdesk
+      summary: Enviar mensaje al chat del ticket
+      operationId: sendTicketMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendTicketMessageRequest'
+      responses:
+        '201':
+          description: Mensaje enviado exitosamente.
+        '422':
+          description: No es posible enviar mensajes en tickets cerrados o cancelados.
+
+  /v1/support/tickets/{id}/logs:
+    get:
+      tags:
+        - Soporte / Helpdesk
+      summary: Consultar bitácora de evolución del ticket
+      description: Historial inmutable de acciones, cambios de estatus y comentarios del ticket.
+      operationId: getTicketLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Bitácora de evolución del ticket.
+
 components:
 
   securitySchemes:
@@ -1218,3 +1462,179 @@ components:
           maxLength: 2000
           nullable: true
           example: 'Revisión completada sin novedades.'
+
+    SupportTicket:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        code:
+          type: string
+          example: TKT-2026-0001
+        title:
+          type: string
+          example: Duda técnica con generador de 250 kVA
+        category:
+          type: string
+          example: soporte_tecnico
+        category_label:
+          type: string
+          example: Soporte Técnico
+        description:
+          type: string
+          nullable: true
+          example: El equipo no arranca en modo automático.
+        status:
+          type: string
+          enum: [pending, in_progress, finished, cancelled]
+          example: pending
+        status_label:
+          type: string
+          example: En Espera
+        status_color:
+          type: string
+          example: amber
+        final_comment:
+          type: string
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+        assigned_agent:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+            role_label:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TicketMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticket_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        sender_name:
+          type: string
+        sender_type:
+          type: string
+          enum: [client, agent, system]
+        message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        timestamp:
+          type: string
+          example: '14:30'
+
+    TicketLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticket_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        user_name:
+          type: string
+        user_role:
+          type: string
+        action:
+          type: string
+        previous_status:
+          type: string
+          nullable: true
+        new_status:
+          type: string
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CreateTicketRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: Falla en panel de control Deep Sea
+        category:
+          type: string
+          maxLength: 50
+          example: soporte_tecnico
+        description:
+          type: string
+          maxLength: 3000
+          example: Al encender genera alarma de bajo nivel de combustible.
+
+    AssignTicketRequest:
+      type: object
+      properties:
+        assigned_to_user_id:
+          type: integer
+          nullable: true
+          description: ID del operador al que se le asigna el ticket. Si es omitido, el usuario autenticado toma el ticket.
+        comment:
+          type: string
+          maxLength: 500
+
+    UpdateTicketStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [pending, in_progress, finished, cancelled]
+        final_comment:
+          type: string
+          description: Obligatorio si el estado es finished o cancelled.
+          example: Se acudió a planta y se reemplazó el sensor de nivel. Ticket resuelto.
+        comment:
+          type: string
+
+    SendTicketMessageRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          maxLength: 5000
+          example: Hola, confirmo que el equipo ya está operativo.

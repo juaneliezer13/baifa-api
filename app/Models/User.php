@@ -88,5 +88,21 @@ class User extends Authenticatable
     {
         return $this->hasOne(Client::class);
     }
+
+    /**
+     * Tickets creados por este usuario (como cliente).
+     */
+    public function supportTickets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SupportTicket::class, 'user_id');
+    }
+
+    /**
+     * Tickets asignados a este usuario (como operador/administrador).
+     */
+    public function assignedTickets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SupportTicket::class, 'assigned_to_user_id');
+    }
 }
 
