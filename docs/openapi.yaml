@@ -6,7 +6,7 @@ info:
     Desarrollada con Laravel 12 y Docker Compose (Nginx, PHP 8.4-FPM y MySQL 8.0).
     Incluye autenticación mediante Bearer Tokens con **Laravel Sanctum** y control de roles:
     Cliente (`client`), Empleado (`employee`), Jefe/Gerente (`manager`) y Administrador (`admin`).
-  version: 1.0.4
+  version: 1.0.5
   contact:
     name: Juan Chirinos
     email: juaneliezer13@gmail.com
@@ -517,13 +517,14 @@ paths:
     get:
       tags:
         - Tracking / Checkpoints
-      summary: Consulta de trazabilidad de un generador por serial
+      summary: Consulta de trazabilidad de un generador por serial (Pública / Autenticada)
       description: >
-        Obtiene la ficha de un generador y su historial cronológico de puntos de control
-        a partir de su serial de fábrica. Permite a clientes consultar exclusivamente sus
-        propios generadores (RN-PRT-02, RN-TRK-01).
+        Obtiene la ficha de un generador y su historial de ruta a partir de su serial de fábrica.
+        Soporta consulta pública para visitantes sin sesión (datos limitados estilo MRW sin información
+        fiscal ni operarios) y ficha completa para personal interno y cliente propietario (RN-PRT-02, RN-TRK-01).
       operationId: trackBySerial
       security:
+        - {}
         - bearerAuth: []
       parameters:
         - name: serial_number
