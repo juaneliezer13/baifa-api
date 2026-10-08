@@ -44,6 +44,8 @@ class GeneratorResource extends JsonResource
             'photo_url' => $this->photo_url,
             'notes' => $this->notes,
             'checkpoints' => CheckpointResource::collection($this->whenLoaded('checkpoints')),
+            'is_public_view' => false,
+            'requires_auth_for_details' => false,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
