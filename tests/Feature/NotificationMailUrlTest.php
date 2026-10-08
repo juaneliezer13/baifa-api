@@ -73,5 +73,17 @@ class NotificationMailUrlTest extends TestCase
 
         $welcomeUser = new WelcomeUserCreatedMail('Usuario Demo', 'user@demo.com', 'Operador', 'secret123');
         $this->assertEquals('https://tracking.baifa.com.ve/login', $welcomeUser->loginUrl);
+
+        $ticket = new \App\Models\SupportTicket([
+            'id' => 1,
+            'code' => 'TKT-TEST-001',
+            'subject' => 'Consulta técnica',
+        ]);
+
+        $clientTicketMail = new \App\Mail\TicketStatusUpdatedMail($ticket, 'client', 'Abierto', 'En Proceso');
+        $this->assertEquals('https://tracking.baifa.com.ve/my-tickets', $clientTicketMail->ticketUrl);
+
+        $staffTicketMail = new \App\Mail\TicketStatusUpdatedMail($ticket, 'employee', 'Abierto', 'En Proceso');
+        $this->assertEquals('https://tracking.baifa.com.ve/tickets', $staffTicketMail->ticketUrl);
     }
 }

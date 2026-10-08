@@ -25,7 +25,7 @@ class TicketStatusUpdatedMail extends Mailable
         public ?string $changedByName = null,
         ?string $ticketUrl = null
     ) {
-        $baseUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+        $baseUrl = config('app.frontend_url', 'http://localhost:3000');
         $this->ticketUrl = $ticketUrl ?? rtrim($baseUrl, '/') . ($recipientRole === 'client' ? '/my-tickets' : '/tickets');
     }
 
