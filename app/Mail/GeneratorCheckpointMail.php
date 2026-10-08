@@ -29,8 +29,8 @@ class GeneratorCheckpointMail extends Mailable
         public Client $client,
         ?string $trackingUrl = null
     ) {
-        $baseUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
-        $this->trackingUrl = $trackingUrl ?? rtrim($baseUrl, '/') . '/tracking/' . $generator->serial_number;
+        $baseUrl = config('app.frontend_url', 'http://localhost:3000');
+        $this->trackingUrl = $trackingUrl ?? rtrim($baseUrl, '/') . '/tracking?serial=' . urlencode($generator->serial_number);
 
         $status = $this->checkpoint->status;
         $this->isArrival = ($status === GeneratorStatus::DELIVERED);

@@ -56,6 +56,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend Application URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used to build links pointing to the frontend client portal
+    | (e.g. tracking, email verification, notifications, login, etc.).
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL') ?: (
+        (env('APP_URL') && !str_contains((string) env('APP_URL'), ':8000'))
+            ? env('APP_URL')
+            : 'http://localhost:3000'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
