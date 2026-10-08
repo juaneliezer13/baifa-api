@@ -6,7 +6,7 @@ info:
     Desarrollada con Laravel 12 y Docker Compose (Nginx, PHP 8.4-FPM y MySQL 8.0).
     Incluye autenticación mediante Bearer Tokens con **Laravel Sanctum** y control de roles:
     Cliente (`client`), Empleado (`employee`), Jefe/Gerente (`manager`) y Administrador (`admin`).
-  version: 1.0.3
+  version: 1.0.4
   contact:
     name: Juan Chirinos
     email: juaneliezer13@gmail.com
