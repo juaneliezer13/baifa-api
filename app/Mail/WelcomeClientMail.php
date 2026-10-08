@@ -23,7 +23,7 @@ class WelcomeClientMail extends Mailable
         public ?string $initialPassword = null,
         ?string $loginUrl = null
     ) {
-        $baseUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+        $baseUrl = config('app.frontend_url', 'http://localhost:3000');
         $this->loginUrl = $loginUrl ?? rtrim($baseUrl, '/') . '/login';
     }
 
