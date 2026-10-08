@@ -161,7 +161,7 @@ class AuthController extends Controller
             ]
         );
 
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
         $resetUrl = rtrim($frontendUrl, '/') . '/reset-password?token=' . urlencode($rawToken) . '&email=' . urlencode($user->email);
 
         // Enviar correo de restablecimiento con enlace
