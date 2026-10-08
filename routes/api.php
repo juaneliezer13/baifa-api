@@ -73,11 +73,13 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     });
 });
 
+// Consulta rápida de trazabilidad por número de serial (Acceso público con detección opcional de sesión)
+Route::prefix('v1')->group(function () {
+    Route::get('tracking/{serial_number}', [CheckpointController::class, 'trackBySerial']);
+});
+
 // Puntos de Control y Trazabilidad Logística (Etapas 3 y 4)
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
-    // Consulta rápida de trazabilidad por número de serial
-    Route::get('tracking/{serial_number}', [CheckpointController::class, 'trackBySerial']);
-
     // Listado cronológico de puntos de control de un generador
     Route::get('generators/{generator}/checkpoints', [CheckpointController::class, 'index']);
 
@@ -86,5 +88,3 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
         Route::post('generators/{generator}/checkpoints', [CheckpointController::class, 'store']);
     });
 });
-
-

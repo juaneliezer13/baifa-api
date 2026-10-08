@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkpoint\StoreCheckpointRequest;
 use App\Http\Resources\CheckpointResource;
 use App\Http\Resources\GeneratorResource;
+use App\Http\Resources\PublicGeneratorResource;
 use App\Mail\GeneratorCheckpointMail;
 use App\Models\Generator;
 use Illuminate\Http\JsonResponse;
@@ -90,7 +91,7 @@ class CheckpointController extends Controller
                             client: $client,
                         ));
                     } catch (\Throwable $e) {
-                        Log::error("[TRACKING_ERROR] Error al enviar notificación de punto de control por correo: " . $e->getMessage(), [
+                        Log::error('[TRACKING_ERROR] Error al enviar notificación de punto de control por correo: '.$e->getMessage(), [
                             'generator_id' => $generator->id,
                             'checkpoint_id' => $checkpoint->id,
                             'client_id' => $client->id,
@@ -120,11 +121,12 @@ class CheckpointController extends Controller
     }
 
     /**
-     * Consulta rápida de trazabilidad de un generador a partir de su serial de fábrica.
+     * Consulta de trazabilidad de un generador a partir de su serial de fábrica.
+     * Soporta acceso público limitado (estilo MRW) y acceso privado completo si el usuario cuenta con sesión activa y permisos.
      */
     public function trackBySerial(Request $request, string $serialNumber): JsonResponse
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user() ?? $request->user();
         $generator = Generator::where('serial_number', $serialNumber)
             ->with(['client', 'checkpoints.user'])
             ->first();
@@ -135,17 +137,26 @@ class CheckpointController extends Controller
             ], 404);
         }
 
-        // Control de aislamiento para rol cliente
-        if ($user && $user->role === UserRole::CLIENT) {
-            if ($generator->client_id !== $user->client?->id) {
-                return response()->json([
-                    'message' => 'No tiene autorización para rastrear este generador.',
-                ], 403);
+        // Determinar si el usuario tiene autorización para ver los detalles privados completos
+        $hasFullAccess = false;
+
+        if ($user) {
+            if (in_array($user->role, [UserRole::ADMIN, UserRole::MANAGER, UserRole::EMPLOYEE], true)) {
+                $hasFullAccess = true;
+            } elseif ($user->role === UserRole::CLIENT && $generator->client_id === $user->client?->id) {
+                $hasFullAccess = true;
             }
         }
 
+        if ($hasFullAccess) {
+            return response()->json([
+                'generator' => new GeneratorResource($generator),
+            ]);
+        }
+
+        // Vista pública limitada (invitados sin sesión activa o clientes no asignados directamente)
         return response()->json([
-            'generator' => new GeneratorResource($generator),
+            'generator' => new PublicGeneratorResource($generator),
         ]);
     }
 }
