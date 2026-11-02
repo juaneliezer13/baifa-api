@@ -32,10 +32,10 @@ npm run build
 docker login
 
 # 3. Construir la imagen etiquetada con la versión de release
-docker build -t juaneliezer13/baifa-ui:release-1.0.4 -t juaneliezer13/baifa-ui:latest .
+docker build -t juaneliezer13/baifa-ui:release-1.0.5 -t juaneliezer13/baifa-ui:latest .
 
 # 4. Subir la imagen a Docker Hub
-docker push juaneliezer13/baifa-ui:release-1.0.4
+docker push juaneliezer13/baifa-ui:release-1.0.5
 docker push juaneliezer13/baifa-ui:latest
 ```
 
@@ -49,7 +49,7 @@ En el servidor EC2, unificamos los servicios en `~/baifa-base/docker-compose.yml
 ```yaml
 services:
   front:
-    image: juaneliezer13/baifa-ui:release-1.0.4
+    image: juaneliezer13/baifa-ui:release-1.0.5
     container_name: baifa-ui
     restart: unless-stopped
     ports:
@@ -58,7 +58,7 @@ services:
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=3000
-      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://baifa-api.batdev.lat:11001/api}
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-https://baifa-api.batdev.lat/api}
     env_file:
       - .env
 

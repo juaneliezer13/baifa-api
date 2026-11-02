@@ -72,7 +72,7 @@ Reemplaza su contenido con la siguiente configuración actualizada (con las nuev
 ```yaml
 services:
   front:
-    image: juaneliezer13/baifa-ui:release-1.0.4
+    image: juaneliezer13/baifa-ui:release-1.0.5
     container_name: baifa-ui
     restart: unless-stopped
     ports:
@@ -81,7 +81,7 @@ services:
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=3000
-      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://baifa-api.batdev.lat:11001/api}
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-https://baifa-api.batdev.lat/api}
     env_file:
       - .env
 
@@ -200,7 +200,7 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 VITE_APP_NAME="${APP_NAME}"
 
 # URL base pública que consumirá el frontend desde el navegador
-NUXT_PUBLIC_API_BASE=http://baifa-api.batdev.lat:11001/api
+NUXT_PUBLIC_API_BASE=https://baifa-api.batdev.lat/api
 ```
 
 ---
