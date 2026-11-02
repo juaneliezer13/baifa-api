@@ -1,0 +1,49 @@
+services:
+  front:
+    image: juaneliezer13/baifa-ui:release-1.0.4
+    container_name: baifa-ui
+    restart: unless-stopped
+    ports:
+      - "12001:3000"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=3000
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://baifa-api.batdev.lat:11001/api}
+    env_file:
+      - .env
+
+  api:
+    image: juaneliezer13/baifa-api:release-1.0.5
+    container_name: baifa-api
+    restart: unless-stopped
+    ports:
+      - "11001:80"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - storage_public:/var/www/storage/app/public
+
+  db:
+    image: mysql:8.0
+    container_name: baifa-api-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-baifa_api}
+      MYSQL_USER: ${DB_USERNAME:-baifa_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  storage_public:
+  db_data:

@@ -18,7 +18,7 @@ El entorno está 100% contenerizado:
 ```
 HOST (Navegador / Postman / Frontend)
            │
-      Puerto 8000
+      Puerto 11001
            ▼
 [ baifa_api_webserver ] (Nginx Alpine)
            │ FastCGI (Puerto 9000)
@@ -64,7 +64,7 @@ docker compose exec app php artisan migrate
 
 ### 4. Probar la API
 ```bash
-curl http://localhost:8000/api/v1/health
+curl http://localhost:11001/api/v1/health
 ```
 
 **Respuesta:**

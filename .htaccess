@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Desactivar listado de directorios
+    Options -Indexes
+
+    # Proteger archivos sensibles y ocultos (.env, .git, etc.)
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|package\.json|phpunit\.xml|artisan) - [F,L]
+
+    # Redirigir todo el tráfico a la carpeta public/ de Laravel
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

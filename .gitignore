@@ -31,3 +31,4 @@ docs/business/*.pdf
 docs/business/*.png
 docs/business/*.docx
 docs/business/*.xlsx
+*.pem
