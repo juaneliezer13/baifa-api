@@ -3,5 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'app' => 'baifa-api',
+        'version' => '1.0.6',
+        'status' => 'ok',
+    ]);
 });

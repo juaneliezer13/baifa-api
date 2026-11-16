@@ -7,64 +7,59 @@
 [![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-**baifa-api** es una API RESTful desarrollada con Laravel y desplegada mediante contenedores Docker (Nginx + PHP 8.4-FPM + MySQL 8.0). Diseñada de forma ágil y práctica, manteniendo su especificación documentada bajo el estándar **OpenAPI 3.1**.
+**baifa-api** es la API RESTful del sistema **BaiFa Power Tracking**, desarrollada con Laravel 12 y desplegada mediante contenedores Docker (Nginx Alpine + PHP 8.4-FPM + MySQL 8.0), con su especificación documentada bajo el estándar **OpenAPI 3.1**.
 
 ---
 
-## 🏛️ Arquitectura
+## 🏛️ Arquitectura y Puertos Locales
 
 El entorno está 100% contenerizado:
 
-```
-HOST (Navegador / Postman / Frontend)
+```text
+HOST (Navegador / Postman / Frontend en Puerto 15001)
            │
-      Puerto 11001
+      Puerto 14001
            ▼
-[ baifa_api_webserver ] (Nginx Alpine)
+[ baifa_api_webserver ] (Nginx Alpine - Puerto interno 80)
            │ FastCGI (Puerto 9000)
            ▼
-[ baifa_api_app ] (PHP 8.4-FPM + Laravel)
-           │ MySQL (Puerto 3306)
+[ baifa_api_app ] (PHP 8.4-FPM + Laravel 12)
+           │ MySQL (Puerto interno 3306 / Puerto Host 14002)
            ▼
 [ baifa_api_db ] (MySQL 8.0 - Volumen persistente: baifa_api_dbdata)
 ```
 
----
-
-## 📋 Requisitos
-
-* **Docker Engine** y **Docker Compose** v2+.
-* En Windows: **WSL 2** (Ubuntu).
-* **Git**.
-
-> [!NOTE]
-> No necesitas tener PHP, Composer ni MySQL instalados en tu máquina anfitriona; todo se ejecuta dentro de Docker.
+| Servicio | Contenedor | Puerto Interno | Puerto Host |
+| :--- | :--- | :---: | :---: |
+| **API HTTP (Nginx)** | `baifa_api_webserver` | `80` | **`14001`** |
+| **PHP-FPM (Laravel)** | `baifa_api_app` | `9000` | Red interna |
+| **Base de Datos MySQL** | `baifa_api_db` | `3306` | **`14002`** |
 
 ---
 
 ## ⚡ Inicio Rápido
 
-### 1. Clonar y configurar entorno
+### 1. Configurar entorno
 ```bash
-git clone https://github.com/tu-usuario/baifa-api.git
-cd baifa-api
 cp .env.example .env
 ```
 
 ### 2. Levantar los contenedores
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-### 3. Generar clave y ejecutar migraciones
+### 3. Instalar dependencias, migrar y sembrar datos iniciales
 ```bash
+docker compose exec app composer install
 docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate --seed
+docker compose exec app php artisan storage:link
 ```
 
 ### 4. Probar la API
 ```bash
-curl http://localhost:11001/api/v1/health
+curl http://localhost:14001/api/v1/health
 ```
 
 **Respuesta:**
@@ -79,16 +74,11 @@ curl http://localhost:11001/api/v1/health
 
 ---
 
-## 📖 Documentación de Endpoints (OpenAPI)
+## 📖 Documentación Centralizada y OpenAPI
 
-La documentación de los endpoints se encuentra en:
-
-📄 **[`docs/openapi.yaml`](docs/openapi.yaml)**
-
-Puedes visualizarla o probarla directamente:
-* Importando `docs/openapi.yaml` en **Postman** o **Insomnia**.
-* Pegándolo en [editor.swagger.io](https://editor.swagger.io/).
-* Usando la extensión **OpenAPI (Swagger) Editor** en VS Code.
+* 📄 **Especificación OpenAPI 3.1:** [`docs/openapi.yaml`](docs/openapi.yaml)
+* 📚 **Repositorio de Documentación General:** [`../baifa-docs/README.md`](../baifa-docs/README.md)
+* 🏷️ **Historial de Releases:** [`../baifa-docs/releases/README.md`](../baifa-docs/releases/README.md)
 
 ---
 
@@ -101,17 +91,11 @@ docker compose ps
 # Ver logs en vivo
 docker compose logs -f
 
-# Detener los contenedores
-docker compose down
-
-# Iniciar los contenedores
-docker compose up -d
-
 # Ejecutar comandos Artisan
 docker compose exec app php artisan <comando>
 
-# Ejecutar migraciones
-docker compose exec app php artisan migrate
+# Ejecutar migraciones y seeders
+docker compose exec app php artisan migrate --seed
 
 # Ejecutar pruebas automatizadas
 docker compose exec app php artisan test

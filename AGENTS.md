@@ -1,27 +1,32 @@
-# 🤖 Directrices Técnicas, de Arquitectura y Negocio para Agentes de IA
+# 🤖 Directrices Técnicas, de Arquitectura y Negocio para Agentes de IA — baifa-api
 
-Este repositorio contiene la API RESTful **baifa-api** para el sistema logístico de generadores eléctricos (BaiFa). Cualquier modelo de lenguaje o agente autónomo (Antigravity, Claude, Cursor, LLMs) que trabaje en este código DEBE adherirse estrictamente a estas directrices.
+Este repositorio contiene la API RESTful **baifa-api** para el sistema logístico de generadores eléctricos (**BaiFa Power Tracking**). Cualquier modelo de lenguaje o agente autónomo (Antigravity, Claude, Cursor, LLMs) que trabaje en este código DEBE adherirse estrictamente a estas directrices.
 
 ---
 
 ## 🏭 0. Contexto de Negocio del Proyecto (BaiFa Power Tracking)
 
 * **Propósito:** Plataforma web de rastreo logístico y gestión técnica de generadores eléctricos industriales (BaiFa Power).
+* **Puertos Locales Estándar:**
+  - **Backend API (`baifa-api`):** Puerto **`14001`** (`http://localhost:14001/api`)
+  - **Base de Datos MySQL (`baifa_api_db`):** Puerto **`14002`** (`127.0.0.1:14002` -> `3306` interno)
+  - **Frontend Web (`baifa-ui`):** Puerto **`15001`** (`http://localhost:15001`)
 * **Roles de Usuario (RBAC):**
   - **`admin` (Superadministrador):** Control total, auditoría, gestión de usuarios internos y directorio fiscal de clientes.
   - **`manager` (Jefe / Gerente):** Supervisión operativa, métricas globales, seguimiento de inventario y aprobaciones.
   - **`employee` (Operador):** Registro de inspecciones y puntos de control de generadores en campo (sin gestión de usuarios).
-  - **`client` (Cliente Empresarial):** Portal exclusivo de autogestión para seguimiento de sus pedidos y equipos comprados/alquilados.
-* **Hoja de Ruta (5 Etapas):**
+  - **`client` (Cliente Empresarial):** Portal exclusivo de autogestión para seguimiento de sus equipos asignados.
+* **Hoja de Ruta (5 Etapas — `release/v1.0.5`):**
   - **Etapa 1 (Accesos y Gestión de Identidades):** ✅ **Completada (100%)** — Auth Sanctum, Roles, Registro atómico con RIF y Razón Social, Módulo de Usuarios y Directorio de Clientes.
-  - **Etapa 2 (Catálogo e Inventario de Generadores):** ⏳ **Siguiente Hito** — Fichas técnicas (kVA, motor diésel, modelos abiertos/insonorizados), seriales únicos e imágenes.
-  - **Etapa 3 (Tracking Logístico y Checkpoints):** 📋 **Planificado** — Pipeline de estados y trazabilidad en tiempo real.
-  - **Etapa 4 (Dashboard de Autogestión de Clientes):** 📋 **Planificado** — Portal personalizado de clientes y repuestos.
-  - **Etapa 5 (Reportes Operativos y Auditoría):** 📋 **Planificado** — Métricas e historial de auditoría inmutable.
+  - **Etapa 2 (Catálogo e Inventario de Generadores):** ✅ **Completada (100%)** — Fichas técnicas (kVA, motor diésel), seriales únicos e imágenes.
+  - **Etapa 3 (Tracking Logístico y Checkpoints):** ✅ **Completada (100%)** — Pipeline manual de estados y consulta pública estilo MRW.
+  - **Etapa 4 (Bitácora Histórica y Notificaciones):** ✅ **Completada (100%)** — Historial inmutable y correos transaccionales automáticos.
+  - **Etapa 5 (Dashboard de Clientes y Reportes):** ✅ **Completada (100%)** — Portal personalizado de clientes y reportes operativos.
 * **Documentación Centralizada del Proyecto:**
-  - Repositorio global de documentación: `../baifa-docs/`
-  - Reglas de negocio del backend: `../baifa-docs/business/business_rules_backend.md`
-  - Especificación de diseño Figma: `../baifa-docs/business/diseno_figma.md`
+  - Repositorio global de documentación: [`../baifa-docs/README.md`](../baifa-docs/README.md)
+  - Normas técnicas: [`../baifa-docs/NORMAS_TECNICAS.md`](../baifa-docs/NORMAS_TECNICAS.md)
+  - Reglas de negocio del backend: [`../baifa-docs/business/business_rules_backend.md`](../baifa-docs/business/business_rules_backend.md)
+  - Especificación de diseño Figma: [`../baifa-docs/business/diseno_figma.md`](../baifa-docs/business/diseno_figma.md)
 
 ---
 
@@ -29,7 +34,7 @@ Este repositorio contiene la API RESTful **baifa-api** para el sistema logístic
 
 1. **NO ejecutar tests automáticamente:**
    * ❌ **PROHIBIDO** ejecutar `php artisan test` tras cada modificación.
-   * ✅ **SOLO** ejecutar pruebas cuando el usuario (Juan) lo ordene expresamente (ej. *"corre los tests"*).
+   * ✅ **SOLO** ejecutar pruebas cuando el usuario lo ordene expresamente (ej. *"corre los tests"*).
 2. **NO ejecutar Laravel Pint automáticamente:**
    * ❌ **PROHIBIDO** ejecutar `./vendor/bin/pint` automáticamente.
    * ✅ **SOLO** ejecutarlo cuando el usuario lo solicite expresamente (ej. *"pasa pint"*, *"formatea el código"*).
@@ -41,9 +46,9 @@ Este repositorio contiene la API RESTful **baifa-api** para el sistema logístic
 
 ## 🧼 2. Estándar de Código Limpio y Arquitectura Equilibrada
 
-Buscamos un desarrollo **básico, limpio, legible y escalable**, evitando tanto controladores sobrecargados (*fat controllers*) como el exceso de abstracción innecesaria (sobre-ingeniería / *over-engineering*):
+Buscamos un desarrollo **limpio, legible y escalable**, evitando tanto controladores sobrecargados (*fat controllers*) como el exceso de abstracción innecesaria (*over-engineering*):
 
-```
+```text
 Solicitud HTTP ──> [Form Request (Validación)] ──> [Controlador Limpio] ──> [Modelo / BD] ──> [API Resource (JSON)]
                                                           │ (Si falla)
                                                           ▼
@@ -66,7 +71,7 @@ Solicitud HTTP ──> [Form Request (Validación)] ──> [Controlador Limpio]
    * Todo endpoint operativo del negocio debe estar protegido obligatoriamente con `auth:sanctum`.
    * Si el recurso está reservado a roles específicos, proteger con el middleware `role:admin,manager,employee`.
 2. **Endpoints Públicos:**
-   * Únicamente rutas que no requieren sesión (`/login`, `/register`, `/health`).
+   * Únicamente rutas que no requieren sesión (`/login`, `/register`, `/forgot-password`, `/reset-password`, `/health`, `/tracking/{serial_number}`).
 3. **Validación Obligatoria con Form Requests:**
    * **PROHIBIDO** validar con `$request->validate()` dentro del controlador.
    * Toda petición con carga de datos (`POST`, `PUT`, `PATCH`) debe tener su clase dedicada en `app/Http/Requests/<Modulo>/`.
@@ -77,16 +82,13 @@ Solicitud HTTP ──> [Form Request (Validación)] ──> [Controlador Limpio]
 ## 📤 4. Transformación de Respuestas (API Resources)
 
 * **PROHIBIDO** retornar modelos Eloquent directamente en crudo (ej. `return User::all();`).
-* **SIEMPRE** transformar las respuestas mediante clases **API Resource** en `app/Http/Resources/<Modulo>/`:
-  * Para un registro: `return new ClienteResource($cliente);`
-  * Para colecciones paginadas: `return ClienteResource::collection($clientes);`
-* Garantiza que los nombres de campos en el JSON sean consistentes y no se expongan campos internos no deseados.
+* **SIEMPRE** transformar las respuestas mediante clases **API Resource** en `app/Http/Resources/`:
+  * Para un registro: `return new ClientResource($client);`
+  * Para colecciones: `return ClientResource::collection($clients);`
 
 ---
 
 ## 📝 5. Sistema de Logs Categorizado en Español (Monitoreo en Docker)
-
-Para facilitar la supervisión del sistema en tiempo real a través de los logs de Docker (`docker compose logs -f app`), los errores y eventos clave deben registrarse siguiendo un estándar uniforme:
 
 ### Formato de Registro:
 ```php
@@ -106,26 +108,10 @@ Log::error("[MODULO_TIPO] Mensaje explicativo en español", [
 
 ---
 
-## 📖 6. Documentación Activa y en Español
+## 📖 6. Documentación Activa y Versionado Semántico
 
-1. **OpenAPI (`docs/openapi.yaml`):**
-   * Cada endpoint debe documentarse en [`docs/openapi.yaml`](docs/openapi.yaml) antes de dar por completada la tarea.
-   * **Todo el texto debe estar en español:** títulos, descripciones, nombres de parámetros, ejemplos y respuestas.
-2. **Libro de Reglas de Negocio (`../baifa-docs/business/business_rules_backend.md`):**
-   * Toda nueva condición o flujo indicado por el cliente debe registrarse en el libro central de reglas con su código `RN-[MODULO]-[NUMERO]`.
-
----
-
-## 🏷️ 7. Versionado Semántico y Ramas de Release (Norma Técnica)
-
-Para mantener una trazabilidad rigurosa y ordenada de cada hito, entrega o conjunto de cambios funcionales a nivel de Git y GitHub:
-1. **Escalamiento Semántico (SemVer):**
-   * **MAJOR (`X.0.0`):** Cambios que rompen compatibilidad o saltos estructurales de etapa mayor.
-   * **MINOR (`1.X.0`):** Incorporación de nuevos módulos, modelos o endpoints funcionales completos.
-   * **PATCH (`1.0.X`):** Mejoras de código, correcciones de errores, nuevas notificaciones o configuraciones complementarias.
+1. **OpenAPI (`docs/openapi.yaml` y `../baifa-docs/api-spec/openapi.yaml`):**
+   * Cada endpoint debe documentarse en español y mantenerse sincronizado en ambos archivos.
 2. **Estándar de Nomenclatura para Releases (Docker vs GitHub):**
-   * **Docker Hub (Imágenes y Tags):** El estándar obligatorio es `release-X.Y.Z` (ejemplo: `juaneliezer13/baifa-api:release-1.1.1` o `release-1.0.3`). No utilizar prefijos sueltos (`1.0.3` o `v1.0.3`) en Docker Hub.
-   * **GitHub (Ramas de Release y Tags):** El estándar obligatorio para las ramas de release y las tags de Git/GitHub es `release/vX.Y.Z` (ejemplo: rama `release/v1.1.1` y tag `release/v1.1.1`, o para esta versión `release/v1.0.3`).
-   * Cada nueva entrega funcional completada debe escalar su versión semántica correspondiente en ambos sistemas.
-3. **Sincronización:**
-   * La versión debe actualizarse en el campo `info.version` del archivo `docs/openapi.yaml`.
+   * **Docker Hub:** `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.5`).
+   * **GitHub (Ramas y Tags):** `release/vX.Y.Z` (ej. `release/v1.0.5`).

@@ -29,7 +29,7 @@ class GeneratorUpdatedMail extends Mailable
         public ?string $newStatusLabel = null,
         ?string $trackingUrl = null
     ) {
-        $baseUrl = config('app.frontend_url', 'http://localhost:3000');
+        $baseUrl = config('app.frontend_url', 'http://localhost:15001');
         $this->trackingUrl = $trackingUrl ?? rtrim($baseUrl, '/') . '/tracking?serial=' . urlencode($generator->serial_number);
     }
 
