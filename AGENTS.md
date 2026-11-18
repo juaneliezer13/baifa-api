@@ -16,7 +16,7 @@ Este repositorio contiene la API RESTful **baifa-api** para el sistema logístic
   - **`manager` (Jefe / Gerente):** Supervisión operativa, métricas globales, seguimiento de inventario y aprobaciones.
   - **`employee` (Operador):** Registro de inspecciones y puntos de control de generadores en campo (sin gestión de usuarios).
   - **`client` (Cliente Empresarial):** Portal exclusivo de autogestión para seguimiento de sus equipos asignados.
-* **Hoja de Ruta (5 Etapas — `release/v1.0.5`):**
+* **Hoja de Ruta (5 Etapas — `release/v1.0.7`):**
   - **Etapa 1 (Accesos y Gestión de Identidades):** ✅ **Completada (100%)** — Auth Sanctum, Roles, Registro atómico con RIF y Razón Social, Módulo de Usuarios y Directorio de Clientes.
   - **Etapa 2 (Catálogo e Inventario de Generadores):** ✅ **Completada (100%)** — Fichas técnicas (kVA, motor diésel), seriales únicos e imágenes.
   - **Etapa 3 (Tracking Logístico y Checkpoints):** ✅ **Completada (100%)** — Pipeline manual de estados y consulta pública estilo MRW.
@@ -113,5 +113,5 @@ Log::error("[MODULO_TIPO] Mensaje explicativo en español", [
 1. **OpenAPI (`docs/openapi.yaml` y `../baifa-docs/api-spec/openapi.yaml`):**
    * Cada endpoint debe documentarse en español y mantenerse sincronizado en ambos archivos.
 2. **Estándar de Nomenclatura para Releases (Docker vs GitHub):**
-   * **Docker Hub:** `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.5`).
-   * **GitHub (Ramas y Tags):** `release/vX.Y.Z` (ej. `release/v1.0.5`).
+   * **Docker Hub:** `release-X.Y.Z` (ej. `juaneliezer13/baifa-api:release-1.0.7`).
+   * **GitHub (Ramas y Tags):** `release/vX.Y.Z` (ej. `release/v1.0.7`). Prohibido usar tags sin el prefijo `release/`.

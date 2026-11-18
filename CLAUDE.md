@@ -11,8 +11,8 @@
 2. NEVER run linter (`./vendor/bin/pint`) automatically. Run only when explicitly requested.
 3. All commands run inside Docker: `docker compose exec app <command>`.
 4. Semantic Versioning & Release (Norma Técnica):
-   - Docker releases/tags: `release-X.Y.Z` (e.g. `juaneliezer13/baifa-api:release-1.0.5`).
-   - GitHub branches & tags: `release/vX.Y.Z` (e.g. `release/v1.0.5`).
+   - Docker releases/tags: `release-X.Y.Z` (e.g. `juaneliezer13/baifa-api:release-1.0.7`).
+   - GitHub branches & tags: `release/vX.Y.Z` (e.g. `release/v1.0.7`). Never use bare `vX.Y.Z` tags.
    - Synchronize version in `docs/openapi.yaml` and `../baifa-docs/api-spec/openapi.yaml`.
 
 ## Clean Code & Architecture Rules

@@ -10,17 +10,12 @@ use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return $this->user()?->isAdmin() ?? false;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -30,7 +25,15 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'email' => [
+                'sometimes',
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($userId),
+            ],
             'password' => ['sometimes', 'nullable', 'string', 'min:8'],
             'role' => ['sometimes', 'required', 'string', Rule::enum(UserRole::class)],
             'is_active' => ['sometimes', 'boolean'],
@@ -38,8 +41,6 @@ class UpdateUserRequest extends FormRequest
     }
 
     /**
-     * Mensajes de validación personalizados en español.
-     *
      * @return array<string, string>
      */
     public function messages(): array
@@ -48,6 +49,7 @@ class UpdateUserRequest extends FormRequest
             'name.required' => 'El nombre completo es obligatorio.',
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'El correo electrónico no tiene un formato válido.',
+            'email.regex' => 'Ingresa un correo electrónico válido (ej. usuario@baifa.com.ve).',
             'email.unique' => 'Este correo electrónico ya se encuentra registrado.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'role.required' => 'El cargo o rol es obligatorio.',
@@ -55,9 +57,6 @@ class UpdateUserRequest extends FormRequest
         ];
     }
 
-    /**
-     * Configuración posterior del validador para reglas de negocio de usuarios.
-     */
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {

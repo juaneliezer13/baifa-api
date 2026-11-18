@@ -61,7 +61,7 @@ class AuthController extends Controller
                 'user_id' => $user->id,
             ]);
 
-            // Enviar correo simple de bienvenida notificando registro de cliente
+            // Enviar correo de bienvenida notificando registro de cliente
             try {
                 Mail::to($user->email)->send(new WelcomeClientMail(
                     userName: $user->name,
@@ -94,18 +94,15 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        $validPassword = $user && Hash::check($validated['password'], $user->password);
-
-        // Compatibilidad para cuenta cliente demo: permite tanto '12345678' como 'password123'
-        if ($user && ! $validPassword && $user->email === 'cliente.real@empresa.com') {
-            if ($validated['password'] === 'password123' || $validated['password'] === '12345678') {
-                $validPassword = true;
-            }
-        }
-
-        if (! $user || ! $validPassword) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
+            ]);
+        }
+
+        if (! $user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => ['Esta cuenta se encuentra desactivada. Contacta al administrador.'],
             ]);
         }
 
@@ -126,17 +123,6 @@ class AuthController extends Controller
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         $email = strtolower(trim($request->email));
-
-        // Validación de cuentas institucionales de prueba protegidas
-        $blockedEmails = ['admin@baifa.com.ve', 'cliente.real@empresa.com'];
-        if (in_array($email, $blockedEmails, true)) {
-            return response()->json([
-                'message' => 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
-                'errors' => [
-                    'email' => ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.'],
-                ],
-            ], 422);
-        }
 
         $user = User::where('email', $email)->first();
 
@@ -168,13 +154,11 @@ class AuthController extends Controller
         try {
             Mail::to($user->email)->send(new ResetPasswordMail($user->name, $resetUrl, $rawToken));
         } catch (\Throwable $e) {
-            Log::error('Error al enviar correo de restablecimiento: ' . $e->getMessage());
+            Log::error('[AUTH_ERROR] Error al enviar correo de restablecimiento: ' . $e->getMessage());
         }
 
         return response()->json([
             'message' => 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
-            'reset_url' => $resetUrl,
-            'token' => $rawToken,
         ]);
     }
 
@@ -184,17 +168,6 @@ class AuthController extends Controller
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $email = strtolower(trim($request->email));
-
-        // Validación de cuentas institucionales de prueba protegidas
-        $blockedEmails = ['admin@baifa.com.ve', 'cliente.real@empresa.com'];
-        if (in_array($email, $blockedEmails, true)) {
-            return response()->json([
-                'message' => 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
-                'errors' => [
-                    'email' => ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.'],
-                ],
-            ], 422);
-        }
 
         // Buscar token en password_reset_tokens
         $resetRecord = DB::table('password_reset_tokens')->where('email', $email)->first();

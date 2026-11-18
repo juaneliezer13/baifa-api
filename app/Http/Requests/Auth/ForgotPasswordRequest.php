@@ -7,36 +7,36 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ForgotPasswordRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/',
+                'max:255',
+            ],
         ];
     }
 
     /**
-     * Mensajes de validación en español.
-     *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
             'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El formato del correo electrónico no es válido.',
+            'email.email' => 'Ingresa un correo electrónico válido (ej. usuario@empresa.com).',
+            'email.regex' => 'Ingresa un correo electrónico válido (ej. usuario@empresa.com).',
         ];
     }
 }

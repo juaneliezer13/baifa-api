@@ -9,24 +9,26 @@ use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return $this->user()?->isAdmin() ?? false;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/',
+                'max:255',
+                'unique:users,email',
+            ],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::enum(UserRole::class)],
             'is_active' => ['sometimes', 'boolean'],
@@ -34,8 +36,6 @@ class StoreUserRequest extends FormRequest
     }
 
     /**
-     * Mensajes de validación personalizados en español.
-     *
      * @return array<string, string>
      */
     public function messages(): array
@@ -44,6 +44,7 @@ class StoreUserRequest extends FormRequest
             'name.required' => 'El nombre completo es obligatorio.',
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'El correo electrónico no tiene un formato válido.',
+            'email.regex' => 'Ingresa un correo electrónico válido (ej. usuario@baifa.com.ve).',
             'email.unique' => 'Este correo electrónico ya se encuentra registrado.',
             'password.required' => 'La contraseña es obligatoria.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
@@ -52,9 +53,6 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
-    /**
-     * Configuración posterior del validador para reglas de negocio.
-     */
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
