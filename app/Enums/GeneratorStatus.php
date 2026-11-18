@@ -4,11 +4,13 @@ namespace App\Enums;
 
 enum GeneratorStatus: string
 {
-    case WAREHOUSE = 'warehouse';
-    case IN_TRANSIT = 'in_transit';
-    case CHECKPOINT = 'checkpoint';
+    case PURCHASE_ORDER = 'purchase_order';
+    case IN_PRODUCTION = 'in_production';
+    case ORIGIN_CUSTOMS = 'origin_customs';
+    case MARITIME_TRANSIT = 'maritime_transit';
+    case DESTINATION_CUSTOMS = 'destination_customs';
+    case BAIFA_WAREHOUSE = 'baifa_warehouse';
     case DELIVERED = 'delivered';
-    case INSTALLED = 'installed';
 
     /**
      * Retorna la etiqueta legible en español para el estado del generador.
@@ -16,11 +18,13 @@ enum GeneratorStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::WAREHOUSE => 'En Almacén',
-            self::IN_TRANSIT => 'En Tránsito',
-            self::CHECKPOINT => 'En Punto de Control',
-            self::DELIVERED => 'Entregado en Locación',
-            self::INSTALLED => 'Instalado y Operativo',
+            self::PURCHASE_ORDER => 'Orden de Compra',
+            self::IN_PRODUCTION => 'En Producción',
+            self::ORIGIN_CUSTOMS => 'En Aduana de Origen',
+            self::MARITIME_TRANSIT => 'En Tránsito Marítimo',
+            self::DESTINATION_CUSTOMS => 'En Aduana Destino',
+            self::BAIFA_WAREHOUSE => 'En Almacén BaiFa',
+            self::DELIVERED => 'Entregado',
         };
     }
 
@@ -30,11 +34,13 @@ enum GeneratorStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::WAREHOUSE => 'violet',
-            self::IN_TRANSIT => 'sky',
-            self::CHECKPOINT => 'yellow',
-            self::DELIVERED => 'green',
-            self::INSTALLED => 'emerald',
+            self::PURCHASE_ORDER => 'violet',
+            self::IN_PRODUCTION => 'amber',
+            self::ORIGIN_CUSTOMS => 'orange',
+            self::MARITIME_TRANSIT => 'sky',
+            self::DESTINATION_CUSTOMS => 'yellow',
+            self::BAIFA_WAREHOUSE => 'cyan',
+            self::DELIVERED => 'emerald',
         };
     }
 

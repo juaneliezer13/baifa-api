@@ -8,6 +8,7 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+      - ./docker/production/php.ini:/usr/local/etc/php/conf.d/99-baifa-production.ini
     networks:
       - baifa_network
     depends_on:

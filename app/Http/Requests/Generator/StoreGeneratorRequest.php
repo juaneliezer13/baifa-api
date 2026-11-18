@@ -25,7 +25,7 @@ class StoreGeneratorRequest extends FormRequest
 
         if (! $this->has('status') || empty($this->status)) {
             $this->merge([
-                'status' => GeneratorStatus::WAREHOUSE->value,
+                'status' => GeneratorStatus::PURCHASE_ORDER->value,
             ]);
         }
     }

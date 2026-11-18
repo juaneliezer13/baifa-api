@@ -82,11 +82,13 @@ class GeneratorController extends Controller
 
         return response()->json([
             'total' => $total,
-            'warehouse' => $counts[GeneratorStatus::WAREHOUSE->value] ?? 0,
-            'in_transit' => $counts[GeneratorStatus::IN_TRANSIT->value] ?? 0,
-            'checkpoint' => $counts[GeneratorStatus::CHECKPOINT->value] ?? 0,
+            'purchase_order' => $counts[GeneratorStatus::PURCHASE_ORDER->value] ?? 0,
+            'in_production' => $counts[GeneratorStatus::IN_PRODUCTION->value] ?? 0,
+            'origin_customs' => $counts[GeneratorStatus::ORIGIN_CUSTOMS->value] ?? 0,
+            'maritime_transit' => $counts[GeneratorStatus::MARITIME_TRANSIT->value] ?? 0,
+            'destination_customs' => $counts[GeneratorStatus::DESTINATION_CUSTOMS->value] ?? 0,
+            'baifa_warehouse' => $counts[GeneratorStatus::BAIFA_WAREHOUSE->value] ?? 0,
             'delivered' => $counts[GeneratorStatus::DELIVERED->value] ?? 0,
-            'installed' => $counts[GeneratorStatus::INSTALLED->value] ?? 0,
         ]);
     }
 

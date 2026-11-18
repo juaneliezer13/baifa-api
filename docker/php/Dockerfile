@@ -19,6 +19,9 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 # Copiar Composer oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Configuración de límites de carga y memoria PHP (64M)
+COPY docker/production/php.ini $PHP_INI_DIR/conf.d/99-baifa-production.ini
+
 WORKDIR /var/www
 
 EXPOSE 9000

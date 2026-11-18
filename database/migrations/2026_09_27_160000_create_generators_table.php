@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('model', 150);
             $table->decimal('capacity_kva', 8, 2)->nullable();
-            $table->string('status', 50)->default('warehouse');
+            $table->string('status', 50)->default('purchase_order');
             $table->date('estimated_arrival_date')->nullable();
             $table->string('photo_path', 500)->nullable();
             $table->text('notes')->nullable();

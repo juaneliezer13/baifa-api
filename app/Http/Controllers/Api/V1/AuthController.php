@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\ClientResource;
 use App\Http\Resources\UserResource;
 use App\Mail\ResetPasswordMail;
@@ -220,7 +221,94 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => new UserResource($request->user()),
+            'user' => new UserResource($request->user()?->load('client')),
+        ]);
+    }
+
+    /**
+     * Actualiza los datos de perfil, contraseña y/o empresa asociada del usuario autenticado.
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $validated = $request->validated();
+
+        // Si solicita cambio de contraseña, verificar primero la contraseña actual
+        if (! empty($validated['password'])) {
+            if (empty($validated['current_password']) || ! Hash::check($validated['current_password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['La contraseña actual ingresada es incorrecta.'],
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($user, $validated) {
+            $userUpdates = [];
+
+            if (isset($validated['name'])) {
+                $userUpdates['name'] = $validated['name'];
+            }
+
+            if (isset($validated['email'])) {
+                $userUpdates['email'] = $validated['email'];
+            }
+
+            if (! empty($validated['password'])) {
+                $userUpdates['password'] = Hash::make($validated['password']);
+            }
+
+            if (! empty($userUpdates)) {
+                $user->update($userUpdates);
+            }
+
+            // Si el usuario tiene ficha de cliente asociada, sincronizar datos
+            $client = $user->client;
+            if ($client) {
+                $clientUpdates = [];
+
+                if (isset($validated['name'])) {
+                    $clientUpdates['contact_name'] = $validated['name'];
+                }
+
+                if (isset($validated['email'])) {
+                    $clientUpdates['contact_email'] = $validated['email'];
+                }
+
+                if (isset($validated['company_fiscal_name'])) {
+                    $clientUpdates['company_fiscal_name'] = $validated['company_fiscal_name'];
+                }
+
+                if (isset($validated['company_short_name'])) {
+                    $clientUpdates['company_short_name'] = $validated['company_short_name'];
+                }
+
+                if (isset($validated['rif'])) {
+                    $clientUpdates['rif'] = $validated['rif'];
+                }
+
+                if (array_key_exists('office_phone', $validated)) {
+                    $clientUpdates['office_phone'] = $validated['office_phone'];
+                }
+
+                if (array_key_exists('contact_phone', $validated)) {
+                    $clientUpdates['contact_phone'] = $validated['contact_phone'];
+                }
+
+                if (! empty($clientUpdates)) {
+                    $client->update($clientUpdates);
+                }
+            }
+        });
+
+        Log::info('[AUTH_INFO] Perfil de usuario actualizado', [
+            'user_id' => $user->id,
+            'role' => $user->role?->value,
+            'password_changed' => ! empty($validated['password']),
+        ]);
+
+        return response()->json([
+            'message' => 'Tu perfil ha sido actualizado exitosamente.',
+            'user' => new UserResource($user->fresh('client')),
         ]);
     }
 

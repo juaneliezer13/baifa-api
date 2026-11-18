@@ -37,6 +37,7 @@ class ClientResource extends JsonResource
                 ] : null;
             }),
             'registered_date' => $this->created_at?->format('Y-m-d'),
+            'generators_count' => $this->whenCounted('generators'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

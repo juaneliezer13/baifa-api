@@ -20,21 +20,21 @@
                                         <span style="font-size: 13px; font-weight: 600; color: #94a3b8; margin-left: 6px;">POWER</span>
                                     </td>
                                     <td align="right">
-                                        @if($isArrival || $isAvailable)
+                                        @if($isArrival)
                                         <span style="background-color: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">
-                                            @if($isAvailable) Equipo Operativo @else Llegada a Destino @endif
+                                            Entregado
                                         </span>
                                         @elseif($isInTransit)
                                         <span style="background-color: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">
-                                            En Tránsito
+                                            {{ $checkpoint->status->label() }}
                                         </span>
                                         @elseif($isWarehouse)
-                                        <span style="background-color: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">
-                                            En Almacén
+                                        <span style="background-color: rgba(34, 211, 238, 0.15); border: 1px solid rgba(34, 211, 238, 0.3); color: #22d3ee; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">
+                                            En Almacén BaiFa
                                         </span>
                                         @else
                                         <span style="background-color: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">
-                                            Punto de Control
+                                            {{ $checkpoint->status->label() }}
                                         </span>
                                         @endif
                                     </td>

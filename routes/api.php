@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CheckpointController;
 use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\GeneratorController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,7 @@ Route::prefix('v1/auth')->group(function () {
     // Rutas protegidas
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
+        Route::match(['put', 'patch'], '/profile', [AuthController::class, 'updateProfile']);
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 });
@@ -52,10 +54,19 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('v1')->group(function 
     Route::apiResource('users', UserController::class);
 });
 
-// Directorio Fiscal y Gestión de Clientes (Personal Interno: Admin, Manager, Empleado)
+// Directorio Fiscal y Gestión de Clientes
 Route::middleware(['auth:sanctum', 'role:admin,manager,employee'])->prefix('v1')->group(function () {
-    Route::patch('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus']);
-    Route::apiResource('clients', ClientController::class);
+    // Consulta del directorio de clientes (Admin, Manager, Empleado)
+    Route::get('clients', [ClientController::class, 'index']);
+    Route::get('clients/{client}', [ClientController::class, 'show']);
+
+    // Creación, edición, activación y eliminación de empresas clientes (Exclusivo Admin y Manager)
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::post('clients', [ClientController::class, 'store']);
+        Route::match(['put', 'patch'], 'clients/{client}', [ClientController::class, 'update']);
+        Route::patch('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus']);
+        Route::delete('clients/{client}', [ClientController::class, 'destroy']);
+    });
 });
 
 // Catálogo e Inventario de Generadores Eléctricos (Etapa 2)
@@ -65,10 +76,14 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('generators', [GeneratorController::class, 'index']);
     Route::get('generators/{generator}', [GeneratorController::class, 'show']);
 
-    // Operaciones de gestión/creación/edición (Personal Interno: Admin, Manager, Empleado)
+    // Operaciones de registro/edición de generadores (Personal Interno: Admin, Manager, Empleado)
     Route::middleware('role:admin,manager,employee')->group(function () {
         Route::post('generators', [GeneratorController::class, 'store']);
         Route::match(['put', 'patch', 'post'], 'generators/{generator}', [GeneratorController::class, 'update']);
+    });
+
+    // Eliminación de generadores (Exclusivo Admin y Manager)
+    Route::middleware('role:admin,manager')->group(function () {
         Route::delete('generators/{generator}', [GeneratorController::class, 'destroy']);
     });
 });
@@ -87,4 +102,9 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::middleware('role:admin,manager,employee')->group(function () {
         Route::post('generators/{generator}/checkpoints', [CheckpointController::class, 'store']);
     });
+});
+
+// Tablero de Reportes Ejecutivos y Supervisión Global (Etapa 5 - Exclusivo Admin y Manager)
+Route::middleware(['auth:sanctum', 'role:admin,manager'])->prefix('v1')->group(function () {
+    Route::get('reports/overview', [ReportController::class, 'overview']);
 });

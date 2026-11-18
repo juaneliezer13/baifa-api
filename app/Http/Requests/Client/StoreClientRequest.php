@@ -10,7 +10,7 @@ class StoreClientRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole(UserRole::ADMIN, UserRole::MANAGER, UserRole::EMPLOYEE) ?? false;
+        return $this->user()?->hasRole(UserRole::ADMIN, UserRole::MANAGER) ?? false;
     }
 
     protected function prepareForValidation(): void

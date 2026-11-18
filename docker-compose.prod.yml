@@ -1,6 +1,6 @@
 services:
   api:
-    image: ${DOCKER_IMAGE:-juaneliezer13/baifa-api:release-1.0.5}
+    image: ${DOCKER_IMAGE:-juaneliezer13/baifa-api:release-1.0.8}
     container_name: baifa-api
     restart: unless-stopped
     ports:

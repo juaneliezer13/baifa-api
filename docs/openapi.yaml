@@ -6,7 +6,7 @@ info:
     Desarrollada con Laravel 12 y Docker Compose (Nginx, PHP 8.4-FPM y MySQL 8.0).
     Incluye autenticación mediante Bearer Tokens con **Laravel Sanctum** y control de roles:
     Cliente (`client`), Empleado (`employee`), Jefe/Gerente (`manager`) y Administrador (`admin`).
-  version: 1.0.7
+  version: 1.0.8
   contact:
     name: Juan Chirinos
     email: juaneliezer13@gmail.com
@@ -28,6 +28,8 @@ tags:
     description: Catálogo de inventario, equipos asignados, métricas y control de estados (Etapa 2).
   - name: Tracking / Checkpoints
     description: Consulta rápida de trazabilidad por serial y registro manual de puntos de control inmutables (Etapas 3 y 4).
+  - name: Reportes
+    description: Tablero consolidado de reportes ejecutivos, métricas porcentuales por estado y supervisión global (Etapa 5).
 
 paths:
   /v1/health:
@@ -134,6 +136,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/auth/profile:
+    put:
+      tags:
+        - Autenticación
+      summary: Actualizar perfil, contraseña y/o empresa del usuario autenticado
+      description: Permite a cualquier usuario con sesión activa (Cliente, Empleado, Gerente o Administrador) actualizar su nombre, correo electrónico, contraseña y, en caso de clientes, los datos fiscales y de contacto de su empresa asociada.
+      operationId: updateAuthenticatedProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil actualizado exitosamente.
+        '401':
+          description: No autenticado.
+        '422':
+          description: Errores de validación o contraseña actual incorrecta.
 
   /v1/auth/logout:
     post:
@@ -633,6 +652,23 @@ paths:
         '422':
           description: Error de validación en los datos del punto de control.
 
+  /v1/reports/overview:
+    get:
+      tags:
+        - Reportes
+      summary: Tablero consolidado de reportes ejecutivos (Etapa 5)
+      description: Retorna el resumen de generadores por los 7 estados logísticos, métricas de clientes, resumen de usuarios y listados consolidados para exportación CSV.
+      operationId: getReportsOverview
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reporte consolidado generado exitosamente.
+        '401':
+          description: No autenticado.
+        '403':
+          description: Acceso restringido al personal interno (admin, manager, employee).
+
 components:
 
   securitySchemes:
@@ -967,19 +1003,23 @@ components:
     GeneratorStatus:
       type: string
       enum:
-        - warehouse
-        - in_transit
-        - checkpoint
+        - purchase_order
+        - in_production
+        - origin_customs
+        - maritime_transit
+        - destination_customs
+        - baifa_warehouse
         - delivered
-        - installed
       description: |
-        Estado del ciclo logístico del generador:
-        * `warehouse`: En Almacén.
-        * `in_transit`: En Tránsito hacia destino.
-        * `checkpoint`: En Punto de Control / Alcabala.
-        * `delivered`: Entregado en locación del cliente.
-        * `installed`: Instalado y Operativo.
-      example: warehouse
+        Estado del ciclo logístico del generador (7 etapas):
+        * `purchase_order`: Orden de Compra.
+        * `in_production`: En Producción.
+        * `origin_customs`: En Aduana de Origen.
+        * `maritime_transit`: En Tránsito Marítimo.
+        * `destination_customs`: En Aduana Destino.
+        * `baifa_warehouse`: En Almacén BaiFa.
+        * `delivered`: Entregado.
+      example: purchase_order
 
     Generator:
       type: object
@@ -1062,22 +1102,28 @@ components:
       properties:
         total:
           type: integer
-          example: 5
-        warehouse:
+          example: 9
+        purchase_order:
           type: integer
           example: 1
-        in_transit:
+        in_production:
           type: integer
           example: 2
-        checkpoint:
+        origin_customs:
+          type: integer
+          example: 1
+        maritime_transit:
+          type: integer
+          example: 1
+        destination_customs:
+          type: integer
+          example: 1
+        baifa_warehouse:
           type: integer
           example: 1
         delivered:
           type: integer
-          example: 1
-        installed:
-          type: integer
-          example: 0
+          example: 2
 
     StoreGeneratorRequest:
       type: object

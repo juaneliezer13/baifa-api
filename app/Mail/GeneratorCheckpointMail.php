@@ -34,23 +34,29 @@ class GeneratorCheckpointMail extends Mailable
 
         $status = $this->checkpoint->status;
         $this->isArrival = ($status === GeneratorStatus::DELIVERED);
-        $this->isAvailable = ($status === GeneratorStatus::INSTALLED);
-        $this->isWarehouse = ($status === GeneratorStatus::WAREHOUSE);
-        $this->isInTransit = ($status === GeneratorStatus::IN_TRANSIT);
+        $this->isAvailable = ($status === GeneratorStatus::DELIVERED);
+        $this->isWarehouse = ($status === GeneratorStatus::BAIFA_WAREHOUSE);
+        $this->isInTransit = in_array($status, [
+            GeneratorStatus::MARITIME_TRANSIT,
+            GeneratorStatus::ORIGIN_CUSTOMS,
+            GeneratorStatus::DESTINATION_CUSTOMS,
+        ], true);
     }
 
     public function envelope(): Envelope
     {
+        $statusLabel = $this->checkpoint->status instanceof GeneratorStatus
+            ? $this->checkpoint->status->label()
+            : (string) $this->checkpoint->status;
+
         if ($this->isArrival) {
-            $subject = "[BaiFa Tracking] ¡Llegada Confirmada! Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
-        } elseif ($this->isAvailable) {
-            $subject = "[BaiFa Tracking] ¡Equipo Disponible y Operativo! Generador #{$this->generator->serial_number}";
+            $subject = "[BaiFa Tracking] ¡Equipo Entregado! Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
         } elseif ($this->isWarehouse) {
-            $subject = "[BaiFa Tracking] Generador #{$this->generator->serial_number} en Almacén ({$this->checkpoint->checkpoint_name})";
+            $subject = "[BaiFa Tracking] Generador #{$this->generator->serial_number} en Almacén BaiFa ({$this->checkpoint->checkpoint_name})";
         } elseif ($this->isInTransit) {
-            $subject = "[BaiFa Tracking] En Camino: Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
+            $subject = "[BaiFa Tracking] {$statusLabel}: Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
         } else {
-            $subject = "[BaiFa Tracking] Nuevo Punto de Control: Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
+            $subject = "[BaiFa Tracking] {$statusLabel}: Generador #{$this->generator->serial_number} - {$this->checkpoint->checkpoint_name}";
         }
 
         return new Envelope(
